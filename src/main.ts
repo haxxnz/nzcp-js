@@ -249,8 +249,6 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   unprotected_ = Buffer.alloc(0);
   unprotected_ = unprotected_ || new Buffer("");
 
-  console.log(signature_);
-
   const EC = elliptic.ec;
   const ec = new EC("p256");
 
