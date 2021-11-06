@@ -5,7 +5,8 @@ import cbor from "cbor";
 import fetch from "node-fetch";
 import crypto from "crypto";
 import elliptic from "elliptic";
-import { CWTPayload } from "./types";
+import { CWTPayload } from "./cwtPayloadTypes";
+import { DID } from "./didTypes";
 
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
@@ -155,7 +156,7 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   const wellKnownDidEndpoint =
     iss.replace("did:web:", "https://") + "/.well-known/did.json";
   const response = await fetch(wellKnownDidEndpoint);
-  const did = (await response.json()) as any;
+  const did = (await response.json()) as DID;
 
   if (did.id !== iss) {
     return false;
@@ -182,8 +183,14 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   //   ]
   // }
   const verificationMethod = did.verificationMethod.find(
-    (v: any) => v.id === `${iss}#${kid}`
+    v => v.id === `${iss}#${kid}`
   );
+
+  if (!verificationMethod) {
+    // See "Public Key Not Found" example to trigger this
+    // https://nzcp.covid19.health.nz/#public-key-not-found
+    throw new Error("Verification method for this Public Key is Not Found")
+  }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
 
