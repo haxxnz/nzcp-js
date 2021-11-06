@@ -11,7 +11,7 @@ import { validateCOSESignature } from "./crypto";
 // https://nzcp.covid19.health.nz/
 
 type Result =
-  | { success: true }
+  | { success: true; violates: undefined }
   | {
       success: false;
       violates: {
