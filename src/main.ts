@@ -13,8 +13,6 @@ import { Result } from "./generalTypes";
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
-// TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
-// TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
 
 // TODO: add tests for every error path
 export const validateNZCovidPass = async (

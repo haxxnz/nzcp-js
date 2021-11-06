@@ -118,7 +118,6 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
   const vcClaimRaw = rawCWTPayload.get("vc");
   let vc: VC;
   if (vcClaimRaw) {
-    // TODO: verify vc claim using json-schema or something
     vc = vcClaimRaw as VC;
   } else {
     return {

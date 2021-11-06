@@ -12,7 +12,6 @@ export interface VC {
   credentialSubject: CredentialSubject;
 }
 
-// TODO: rename to CWT claims
 export interface CWTClaims {
   iss: string;
   nbf: number;
