@@ -7,8 +7,10 @@ use serde::{
 };
 use uuid::Uuid;
 
+use super::barcode::QrBarcode;
+
 #[derive(Debug, Deserialize, PartialEq, Eq)]
-struct CwtPayload<'a, T> {
+pub struct CwtPayload<'a, T> {
     #[serde(rename = "cti")]
     cwt_token_id: Uuid,
 
@@ -23,6 +25,16 @@ struct CwtPayload<'a, T> {
 
     #[serde(borrow, rename = "vc")]
     verifiable_credential: VerifiableCredential<'a, T>,
+}
+
+impl<'a, T> CwtPayload<'a, T> {
+    pub fn from_barcode(barcode: &'a QrBarcode) -> Result<Self, ()>
+    where
+        T: Deserialize<'a>,
+    {
+        let mut deserializer = serde_cbor::Deserializer::from_slice(&barcode.0);
+        Ok(CwtPayload::deserialize(&mut deserializer).unwrap())
+    }
 }
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
