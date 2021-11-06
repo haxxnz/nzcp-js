@@ -101,8 +101,8 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
 
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
-    any,
-    any
+    number | string,
+    string | number | Buffer | unknown
   >;
 
   // quickly looked at some libs but they didn't look like they handled this...
@@ -113,18 +113,19 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
         return { ...prev, iss: value };
       }
       if (key === 7) {
-        const hexUuid = value.toString("hex");
-
-        return {
-          ...prev,
-          jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
-            8,
-            12
-          )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
-            20,
-            32
-          )}`,
-        };
+        if (value instanceof Buffer) {
+          const hexUuid = value.toString("hex");
+          return {
+            ...prev,
+            jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
+              8,
+              12
+            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
+              20,
+              32
+            )}`,
+          };
+        }
       }
       if (key === 4) {
         return { ...prev, exp: value };
