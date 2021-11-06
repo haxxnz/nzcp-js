@@ -18,7 +18,7 @@ const badPublicKeyPass =
 test("Bad Public Key pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(badPublicKeyPass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("7.1.2.8");
+  expect(result.violates?.section).toBe("3");
 });
 
 // https://nzcp.covid19.health.nz/#public-key-not-found
@@ -27,7 +27,7 @@ const publicKeyNotFoundPass =
 test("Public Key Not Found pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(publicKeyNotFoundPass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("7.3.1");
+  expect(result.violates?.section).toBe("5.1.1");
 });
 
 // https://nzcp.covid19.health.nz/#modified-signature
@@ -36,7 +36,7 @@ const modifiedSignaturePass =
 test("Modified Signature pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(modifiedSignaturePass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("7.1.2.8");
+  expect(result.violates?.section).toBe("3");
 });
 
 // https://nzcp.covid19.health.nz/#modified-payload
@@ -45,7 +45,7 @@ const modifiedPayloadPass =
 test("Modified Payload pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(modifiedPayloadPass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("7.1.2.8");
+  expect(result.violates?.section).toBe("3");
 });
 
 // https://nzcp.covid19.health.nz/#expired-pass
