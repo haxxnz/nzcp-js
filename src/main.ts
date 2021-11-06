@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { base32 } from "rfc4648";
-// note: this is certainly node only, need to switch out to cbor-web for web... just get it working in node first
 import cbor from "cbor";
 import fetch from "node-fetch";
 import crypto from "crypto";
@@ -9,8 +7,8 @@ import { CWTPayload } from "./cwtPayloadTypes";
 import { DID } from "./didTypes";
 import { currentTimestamp } from "./util";
 
-// Specification:
-// https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
+// The function below implements v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
 
 type Result =
   | { success: true }
@@ -24,7 +22,7 @@ type Result =
     };
 
 export const validateNZCovidPass = async (payload: string): Promise<Result> => {
-  // NZCP:/<version-identifier>/<base32-encoded-CWT>
+  // Decode the payload of the QR Code
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
     // TODO: rewrite this logic, make it more follow the spec wording
@@ -61,7 +59,7 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
     return {
       success: false,
       error: new Error(
-        "The version-identifier portion of the payload for the current release of the specification MUST be 1"
+        "The version-identifier portion of the payload for the specification MUST be 1"
       ),
       violates: {
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
@@ -293,7 +291,6 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
 
   // VERIFICATION ATTEMPT #1. Manual.
 
-  // eslint-disable-next-line prefer-const
   // example CWT structure (https://datatracker.ietf.org/doc/html/rfc8392#appendix-A.3)
   // 18(
   //   [
