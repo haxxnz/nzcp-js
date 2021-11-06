@@ -14,7 +14,7 @@ interface VC {
 
 export interface CWTPayload {
   iss: string;
-  nbj: number;
+  nbf: number;
   exp: number;
   vc: VC;
   jti: string;

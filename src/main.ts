@@ -133,7 +133,7 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
         return { ...prev, exp: value };
       }
       if (key === 5) {
-        return { ...prev, nbj: value };
+        return { ...prev, nbf: value };
       }
       if (key === "vc") {
         return { ...prev, vc: value };
