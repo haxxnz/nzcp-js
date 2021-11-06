@@ -1,11 +1,11 @@
-interface PublicKeyJwk {
+export interface PublicKeyJwk {
   kty: string;
   crv: string;
   x: string;
   y: string;
 }
 
-interface VerificationMethod {
+export interface VerificationMethod {
   id: string;
   controller: string;
   type: string;
