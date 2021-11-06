@@ -68,7 +68,7 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   // 26              -- {Val:1}, -7
   const decodedCWTProtectedHeaders = cbor.decode(
     decodedCOSEStructure.value[0]
-  ) as Map<any, any>;
+  ) as Map<number, Buffer | number>;
 
   // quickly looked at some libs but they didn't look like they handled this...
   // this will need to be rewritten
