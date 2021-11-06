@@ -5,7 +5,7 @@ interface CredentialSubject {
   dob: string;
 }
 
-interface Vc {
+interface VC {
   '@context': string[];
   version: string;
   type: string[];
@@ -16,6 +16,6 @@ export interface CWTPayload {
   iss: string;
   nbj: number;
   exp: number;
-  vc: Vc;
+  vc: VC;
   jti: string;
 }
