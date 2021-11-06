@@ -217,7 +217,6 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  // TODO: make a list of trusted issuers as a config option
   if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
