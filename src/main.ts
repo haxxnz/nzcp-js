@@ -11,7 +11,7 @@ import { validateCOSESignature } from "./crypto";
 // https://nzcp.covid19.health.nz/
 
 type Result =
-  | { success: true; violates: null }
+  | { success: true }
   | {
       success: false;
       violates: {
@@ -299,7 +299,8 @@ export const validateNZCovidPass = async (
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
-        link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
+        link:
+          "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
         section: "7.1.2.8",
       },
     };
@@ -307,5 +308,5 @@ export const validateNZCovidPass = async (
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
 
-  return { success: result as true, violates: null };
+  return { success: result };
 };
