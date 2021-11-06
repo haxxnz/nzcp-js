@@ -76,20 +76,29 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
 
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const cwtProtectedHeaders = Array.from(
-    decodedCWTProtectedHeaders.entries()
-  ).reduce((prev, [key, value]) => {
-    if (key === 4) {
-      return { ...prev, kid: value.toString() };
+  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4)
+  let kid: string
+  if (CWTHeaderKid) {
+    kid = CWTHeaderKid.toString()
+  }
+  else {
+    throw Error("2.2.kid.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+  }
+  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1)
+  if (CWTHeaderAlg) {
+    if (CWTHeaderAlg === -7) {
+      // alg = "ES256"
+      // pass
     }
-    if (key === 1) {
-      if (value === -7) {
-        return { ...prev, alg: "ES256" };
-      }
-      throw Error();
+    else {
+      throw Error("2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
     }
-    throw Error();
-  }, {}) as any;
+  }
+  else {
+    throw Error("2.2.alg.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+  }
+
+
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
     any,
@@ -171,7 +180,7 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   //   ]
   // }
   const verificationMethod = did.verificationMethod.find(
-    (v: any) => v.id === `${iss}#${cwtProtectedHeaders.kid}`
+    (v: any) => v.id === `${iss}#${kid}`
   );
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
