@@ -14,6 +14,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
     const hexUuid = ctiClaimRaw.toString("hex");
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
+    // TODO: split out to a separate function https://nzcp.covid19.health.nz/#mapping-jti-cti
     jti = `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
       8,
       12
@@ -117,7 +118,6 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
   const vcClaimRaw = rawCWTPayload.get("vc");
   let vc: VC;
   if (vcClaimRaw) {
-    // TODO: verify vc claim using json-schema or something
     vc = vcClaimRaw as VC;
   } else {
     return {
@@ -126,6 +126,115 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         message: "Verifiable Credential CWT claim MUST be present",
         section: "2.1.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
+      },
+      cwtClaims: undefined,
+    };
+  }
+
+  // TODO: not sure if verifying this is actually required by the spec?
+  // https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
+  if (
+    // Section 2.3.2.1
+    // This property MUST be present and its value MUST be an array of strings
+    vc["@context"] instanceof Array &&
+    // Section 2.3.2.3
+    // The first value MUST equal `https://www.w3.org/2018/credentials/v1`
+    vc["@context"][0] === "https://www.w3.org/2018/credentials/v1" &&
+    // Section 2.3.3-2.3.4
+    // The following is an example including an additional JSON-LD context entry that defines the additional vocabulary specific to the New Zealand COVID Pass.
+    vc["@context"][1] === "https://nzcp.covid19.health.nz/contexts/v1"
+  ) {
+    // pass
+  } else {
+    return {
+      success: false,
+      violates: {
+        message:
+          "Verifiable Credential JSON-LD Context property doesn't conform to New Zealand COVID Pass example",
+        link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
+        section: "2.3.2",
+      },
+      cwtClaims: undefined,
+    };
+  }
+
+  if (
+    // Section 2.3.5.1
+    // This property MUST be present and its value MUST be an array
+    vc.type instanceof Array &&
+    // Section 2.3.5.2
+    // Whose first element is VerifiableCredential and second element corresponds to one defined in the pass types section
+    vc.type[0] === "VerifiableCredential" &&
+    // Section 2.4.3
+    // https://nzcp.covid19.health.nz/#pass-types
+    // For the purposes of the New Zealand COVID Pass the Verifiable Credential MUST also include one of the following types.
+    // - PublicCovidPass
+    vc.type[1] === "PublicCovidPass"
+  ) {
+    // pass
+  } else {
+    return {
+      success: false,
+      violates: {
+        message:
+          "Verifiable Credential Type property doesn't conform to New Zealand COVID Pass example",
+        link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
+        section: "2.3.5",
+      },
+      cwtClaims: undefined,
+    };
+  }
+
+  // Section 2.3.8
+  // Verifiable Credential Version property MUST be 1.0.0
+  if (vc.version === "1.0.0") {
+    // pass
+  } else {
+    return {
+      success: false,
+      violates: {
+        message: "Verifiable Credential Version property MUST be 1.0.0",
+        link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
+        section: "2.3.8",
+      },
+      cwtClaims: undefined,
+    };
+  }
+
+  // Section 2.3.9
+  // Verifiable Credential Credential Subject property MUST be present
+  if (vc.credentialSubject) {
+    // and its value MUST be a JSON object with properties determined by the declared pass type for the pass
+    if (!vc.credentialSubject.givenName) {
+      return {
+        success: false,
+        violates: {
+          message: "Missing REQUIRED 'givenName' in credentialSubject property",
+          link: "https://nzcp.covid19.health.nz/#publiccovidpass",
+          section: "2.4.1.2.1",
+        },
+        cwtClaims: undefined,
+      };
+    }
+    if (!vc.credentialSubject.dob) {
+      return {
+        success: false,
+        violates: {
+          message: "Missing REQUIRED 'dob' in credentialSubject property",
+          link: "https://nzcp.covid19.health.nz/#publiccovidpass",
+          section: "2.4.1.2.2",
+        },
+        cwtClaims: undefined,
+      };
+    }
+  } else {
+    return {
+      success: false,
+      violates: {
+        message:
+          "Verifiable Credential Credential Subject property MUST be present",
+        link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
+        section: "2.3.9",
       },
       cwtClaims: undefined,
     };

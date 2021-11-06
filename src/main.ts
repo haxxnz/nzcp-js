@@ -6,21 +6,18 @@ import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims } from "./cwt";
 import { Result } from "./generalTypes";
 
-
-
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 
-
-
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
-const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
-  // TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
-  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
+const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
-export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
-
+// TODO: add tests for every error path
+export const validateNZCovidPass = async (
+  payload: string,
+  trustedIssuers = nzcpTrustedIssuers
+): Promise<Result> => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding
@@ -41,7 +38,8 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
+  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] =
+    payloadMatch;
 
   // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
@@ -77,16 +75,15 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   // Section 4.7
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
   // [RFC4648] NOTE add back in padding if required, if an error is encountered during decoding then fail.
-  let uint8array: Uint8Array
+  let uint8array: Uint8Array;
   try {
     uint8array = base32.parse(
       // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
       // Some base32 decoding implementations may fail to decode a base32 string that is missing the required padding as defined by [RFC4648].
       // [addBase32Padding] is a simple javascript snippet designed to show how an implementor can add the required padding to a base32 string.
-      addBase32Padding(base32EncodedCWT),
+      addBase32Padding(base32EncodedCWT)
     );
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       violates: {
@@ -94,7 +91,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
         section: "4.7",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
       },
-    }
+    };
   }
 
   // With the decoded payload attempt to decode it as COSE_Sign1 CBOR structure, if an error is encountered during decoding then fail.
@@ -136,9 +133,15 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (CWTHeaderKid) {
     kid = CWTHeaderKid.toString();
   } else {
-    throw Error(
-      "§2.2.kid.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
-    );
+    return {
+      success: false,
+      violates: {
+        message:
+          "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        section: "2.2.1.1",
+        link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      },
+    };
   }
   const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
   if (CWTHeaderAlg) {
@@ -146,14 +149,26 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       // alg = "ES256"
       // pass
     } else {
-      throw Error(
-        "§2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration"
-      );
+      return {
+        success: false,
+        violates: {
+          message:
+            "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
+          section: "2.2.2.2",
+          link: "https://nzcp.covid19.health.nz/#cwt-headers",
+        },
+      };
     }
   } else {
-    throw Error(
-      "§2.2.alg.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
-    );
+    return {
+      success: false,
+      violates: {
+        message:
+          "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        section: "2.2.2.1",
+        link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      },
+    };
   }
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
@@ -165,7 +180,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
   if (!cwtClaimsResult.success) {
-    return cwtClaimsResult
+    return cwtClaimsResult;
   }
   const cwtClaims = cwtClaimsResult.cwtClaims;
 
@@ -200,7 +215,6 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  // TODO: make a list of trusted issuers as a config option
   if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
@@ -364,8 +378,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   const result = validateCOSESignature(
     uint8array,
-    // TODO: why does typescript not like this? its checked to being not undefined just above...
-    verificationMethod.publicKeyJwk as JsonWebKey
+    publicKeyJwk
   );
 
   if (!result) {
@@ -375,8 +388,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
-        link:
-          "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
+        link: "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
         section: "3",
       },
     };
