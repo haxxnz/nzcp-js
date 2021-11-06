@@ -43,7 +43,8 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
+  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] =
+    payloadMatch;
 
   // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
@@ -79,16 +80,15 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   // Section 4.7
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
   // [RFC4648] NOTE add back in padding if required, if an error is encountered during decoding then fail.
-  let uint8array: Uint8Array
+  let uint8array: Uint8Array;
   try {
     uint8array = base32.parse(
       // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
       // Some base32 decoding implementations may fail to decode a base32 string that is missing the required padding as defined by [RFC4648].
       // [addBase32Padding] is a simple javascript snippet designed to show how an implementor can add the required padding to a base32 string.
-      addBase32Padding(base32EncodedCWT),
+      addBase32Padding(base32EncodedCWT)
     );
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
       violates: {
@@ -96,7 +96,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
         section: "4.7",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
       },
-    }
+    };
   }
 
   // With the decoded payload attempt to decode it as COSE_Sign1 CBOR structure, if an error is encountered during decoding then fail.
@@ -141,11 +141,12 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     return {
       success: false,
       violates: {
-        message: "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        message:
+          "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
         section: "2.2.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
       },
-    }
+    };
   }
   const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
   if (CWTHeaderAlg) {
@@ -156,21 +157,23 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       return {
         success: false,
         violates: {
-          message: "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
+          message:
+            "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
           section: "2.2.2.2",
           link: "https://nzcp.covid19.health.nz/#cwt-headers",
         },
-      }
+      };
     }
   } else {
     return {
       success: false,
       violates: {
-        message: "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        message:
+          "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
         section: "2.2.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
       },
-    }
+    };
   }
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
@@ -182,7 +185,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
   if (!cwtClaimsResult.success) {
-    return cwtClaimsResult
+    return cwtClaimsResult;
   }
   const cwtClaims = cwtClaimsResult.cwtClaims;
 
@@ -228,6 +231,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       },
     };
   }
+
 
   // {
   //   "@context": "https://w3.org/ns/did/v1",
@@ -391,8 +395,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
-        link:
-          "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
+        link: "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
         section: "3",
       },
     };
