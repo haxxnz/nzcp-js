@@ -12,6 +12,7 @@ const badPublicKeyPass = "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEP2KALYDZSGSZB2O5SWEO
 test("Bad Public Key pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(badPublicKeyPass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("7.1.2.8");
 });
 
 // https://nzcp.covid19.health.nz/#public-key-not-found
@@ -19,6 +20,7 @@ const publicKeyNotFoundPass = "NZCP:/1/2KCEVIQEIVVWK6JNGIASNICZAEP2KALYDZSGSZB2O
 test("Public Key Not Found pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(publicKeyNotFoundPass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("7.3.1");
 });
 
 // https://nzcp.covid19.health.nz/#modified-signature
@@ -26,6 +28,7 @@ const modifiedSignaturePass = "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEP2KALYDZSGSZB2O
 test("Modified Signature pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(modifiedSignaturePass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("7.1.2.8");
 });
 
 // https://nzcp.covid19.health.nz/#modified-payload
@@ -33,6 +36,7 @@ const modifiedPayloadPass = "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEOKKALYDZSGSZB2O5S
 test("Modified Payload pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(modifiedPayloadPass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("7.1.2.8");
 });
 
 // https://nzcp.covid19.health.nz/#expired-pass
@@ -40,6 +44,7 @@ const expiredPass = "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEP2KALYDZSGSZB2O5SWEOTOPJR
 test("Expired Pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(expiredPass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("2.1.4.3");
 });
 
 // https://nzcp.covid19.health.nz/#not-active-pass
@@ -47,5 +52,6 @@ const notActivePass = "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEP2KALYDZSGSZB2O5SWEOTOP
 test("Not Active pass is unsuccessful", async () => {
   const result = await validateNZCovidPass(notActivePass);
   expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("2.1.3.3");
 });
 
