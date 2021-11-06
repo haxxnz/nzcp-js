@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { base32 } from "rfc4648";
-// note: this is certainly node only, need to switch out to cbor-web for web... just get it working in node first
 import cbor from "cbor";
 import fetch from "node-fetch";
 import crypto from "crypto";
@@ -9,26 +7,70 @@ import { CWTPayload } from "./cwtPayloadTypes";
 import { DID } from "./didTypes";
 import { currentTimestamp } from "./util";
 
-// Specification:
-// https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
+// The function below implements v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
 
-export const validateCovidPass = async (payload: string): Promise<boolean> => {
-  // NZCP:/<version-identifier>/<base32-encoded-CWT>
+type Result =
+  | { success: true }
+  | {
+      success: false;
+      violates: {
+        section: string;
+        link: string;
+      };
+      error: Error;
+    };
+
+// https://nzcp.covid19.health.nz/#trusted-issuers
+// The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
+// const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"] - This is what writtern in the spec, but it doesn't work atm, must be an error
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"] // This is the one that works
+
+export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
+  // Decode the payload of the QR Code
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
-    return false;
+    // TODO: rewrite this logic, make it more follow the spec wording
+    return {
+      success: false,
+      error: new Error(
+        "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`"
+      ),
+      violates: {
+        section: "§4",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    };
   }
   const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:") {
-    return false;
+    return {
+      success: false,
+      error: new Error(
+        "The payload of the QR Code MUST begin with the prefix of `NZCP:/`"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        section: "§4",
+      },
+    };
   }
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
   // NOTE - for instance in this version of the specification this value MUST be 1.
   if (versionIdentifier !== "1") {
-    return false;
+    return {
+      success: false,
+      error: new Error(
+        "The version-identifier portion of the payload for the specification MUST be 1"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        section: "§4",
+      },
+    };
   }
 
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
@@ -79,29 +121,30 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
 
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4)
-  let kid: string
+  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4);
+  let kid: string;
   if (CWTHeaderKid) {
-    kid = CWTHeaderKid.toString()
+    kid = CWTHeaderKid.toString();
+  } else {
+    throw Error(
+      "§2.2.kid.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
+    );
   }
-  else {
-    throw Error("2.2.kid.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
-  }
-  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1)
+  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
   if (CWTHeaderAlg) {
     if (CWTHeaderAlg === -7) {
       // alg = "ES256"
       // pass
+    } else {
+      throw Error(
+        "§2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration"
+      );
     }
-    else {
-      throw Error("2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
-    }
+  } else {
+    throw Error(
+      "§2.2.alg.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
+    );
   }
-  else {
-    throw Error("2.2.alg.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
-  }
-
-
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
     number | string,
@@ -123,10 +166,10 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
             jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
               8,
               12
-            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
-              20,
-              32
-            )}`,
+            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(
+              16,
+              20
+            )}-${hexUuid.slice(20, 32)}`,
           };
         }
       }
@@ -146,27 +189,50 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
 
   if (currentTimestamp() >= cwtPayload.nbf) {
     // pass
-  }
-  else {
-    // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
-    return false
+  } else {
+    return {
+      success: false,
+      error: new Error(
+        "The current datetime is after or equal to the value of the `nbf` claim"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "§2.1.nbf.3",
+      },
+    };
   }
 
   if (currentTimestamp() < cwtPayload.exp) {
     // pass
-  }
-  else {
-    // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
-    return false
+  } else {
+    return {
+      success: false,
+      error: new Error(
+        "§2.1.exp.3 The current datetime is before the value of the `exp` claim"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "§2.1.exp.3",
+      },
+    };
   }
 
-  // did:web:nzcp.covid19.health.nz
   const iss = cwtPayload.iss;
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  if (iss !== "did:web:nzcp.covid19.health.nz") {
-    return false;
+  // TODO: make a list of trusted issuers as a config option
+  if (!trustedIssuers.includes(iss)) {
+    return {
+      success: false,
+      error: new Error(
+        "`iss` value reported in the pass does not match one listed in the trusted issuers"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
+        section: "§5",
+      },
+    };
   }
 
   // Following the rules outlined in issuer identifier retrieve the issuers public key that was used to sign the CWT, if an error occurs then fail.
@@ -175,8 +241,16 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const response = await fetch(wellKnownDidEndpoint);
   const did = (await response.json()) as DID;
 
+  // TODO: we should not be doing this on our own - use https://github.com/decentralized-identity/web-did-resolver
   if (did.id !== iss) {
-    return false;
+    return {
+      success: false,
+      error: new Error("The Issuer did does not match the issuer identifier"),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
+        section: "§5",
+      },
+    };
   }
 
   // {
@@ -200,21 +274,27 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   //   ]
   // }
   const verificationMethod = did.verificationMethod.find(
-    v => v.id === `${iss}#${kid}`
+    (v) => v.id === `${iss}#${kid}`
   );
 
   if (!verificationMethod) {
-    // See "Public Key Not Found" example to trigger this
-    // https://nzcp.covid19.health.nz/#public-key-not-found
-    // throw new Error("Verification method for this Public Key is Not Found")
-    return false
+    // TODO: is it ok to reference examples?
+    return {
+      success: false,
+      error: new Error(
+        "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#bad-public-key",
+        section: "§7.3.1",
+      },
+    };
   }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
 
   // VERIFICATION ATTEMPT #1. Manual.
 
-  // eslint-disable-next-line prefer-const
   // example CWT structure (https://datatracker.ietf.org/doc/html/rfc8392#appendix-A.3)
   // 18(
   //   [
@@ -282,10 +362,19 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const result = key.verify(messageHash, signature);
 
   if (!result) {
-    return false;
+    return {
+      success: false,
+      error: new Error(
+        "Retrieved public key does not validate `COSE_Sign1` structure"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
+        section: "§7.1",
+      },
+    };
   }
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
 
-  return result;
+  return { success: result as true };
 };
