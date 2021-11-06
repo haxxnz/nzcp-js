@@ -1,11 +1,11 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
 import fetch from "node-fetch";
-import crypto from "crypto";
-import elliptic from "elliptic";
+
 import { CWTPayload } from "./cwtPayloadTypes";
 import { DID } from "./didTypes";
 import { currentTimestamp } from "./util";
+import { validateCOSESignature } from "./crypto";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
@@ -24,9 +24,12 @@ type Result =
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 // const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"] - This is what writtern in the spec, but it doesn't work atm, must be an error
-const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"] // This is the one that works
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"]; // This is the one that works
 
-export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
+export const validateNZCovidPass = async (
+  payload: string,
+  trustedIssuers = nzcpTrustedIssuers
+): Promise<Result> => {
   // Decode the payload of the QR Code
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
@@ -291,75 +294,12 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
+  // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
 
-  // VERIFICATION ATTEMPT #1. Manual.
-
-  // example CWT structure (https://datatracker.ietf.org/doc/html/rfc8392#appendix-A.3)
-  // 18(
-  //   [
-  //     / protected / << {
-  //       / alg / 1: -7 / ECDSA 256 /
-  //     } >>,
-  //     / unprotected / {
-  //       / kid / 4: h'4173796d6d657472696345434453413
-  //                    23536' / 'AsymmetricECDSA256' /
-  //     },
-  //     / payload / << {
-  //       / iss / 1: "coap://as.example.com",
-  //       / sub / 2: "erikw",
-  //       / aud / 3: "coap://light.example.com",
-  //       / exp / 4: 1444064944,
-  //       / nbf / 5: 1443944944,
-  //       / iat / 6: 1443944944,
-  //       / cti / 7: h'0b71'
-  //     } >>,
-  //     / signature / h'5427c1ff28d23fbad1f29c4c7c6a555e601d6fa29f
-  //                     9179bc3d7438bacaca5acd08c8d4d4f96131680c42
-  //                     9a01f85951ecee743a52b9b63632c57209120e1c9e
-  //                     30'
-  //   ]
-  // )
-  // start again for verifying...
-  const obj = cbor.decode(uint8array);
-  // adding _ to the end not to clash with previous things in this fn
-  // eslint-disable-next-line prefer-const
-  let [protected_, unprotected_, payload_, signature_] = obj.value;
-  //p = cbor.decodeFirstSync(p);
-  unprotected_ = Buffer.alloc(0);
-  unprotected_ = unprotected_ || new Buffer("");
-
-  const EC = elliptic.ec;
-  const ec = new EC("p256");
-
-  const x = Buffer.from(verificationMethod.publicKeyJwk.x, "base64");
-  const y = Buffer.from(verificationMethod.publicKeyJwk.y, "base64");
-
-  // Public Key MUST be either:
-  // 1) '04' + hex string of x + hex string of y; or
-  // x : zRR-XGsCp12Vvbgui4DD6O6cqmhfPuXMhi1OxPl8760 y: Iv5SU6FuW-TRYh5_GOrJlcV_gpF_GpFQhCOD8LSk3T0
-  const key = ec.keyFromPublic(
-    `04${x.toString("hex")}${y.toString("hex")}}`,
-    "hex"
+  const result = validateCOSESignature(
+    uint8array,
+    verificationMethod.publicKeyJwk
   );
-
-  //   Sig_structure = [
-  //     context : "Signature" / "Signature1" / "CounterSignature",
-  //     body_protected : empty_or_serialized_map,
-  //     ? sign_protected : empty_or_serialized_map,
-  //     external_aad : bstr,
-  //     payload : bstr
-  // ]
-  const SigStructure = ["Signature1", protected_, Buffer.alloc(0), payload_];
-  const ToBeSigned = cbor.encode(SigStructure);
-
-  const messageHash = crypto.createHash("SHA256").update(ToBeSigned).digest();
-
-  const signature = {
-    r: signature_.slice(0, signature_.length / 2),
-    s: signature_.slice(signature_.length / 2),
-  };
-  const result = key.verify(messageHash, signature);
 
   if (!result) {
     return {
@@ -368,7 +308,8 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
         "Retrieved public key does not validate `COSE_Sign1` structure"
       ),
       violates: {
-        link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
+        link:
+          "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
         section: "§7.1",
       },
     };
