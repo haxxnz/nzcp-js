@@ -13,7 +13,7 @@ export interface VC {
 }
 
 // TODO: rename to CWT claims
-export interface CWTPayload {
+export interface CWTClaims {
   iss: string;
   nbf: number;
   exp: number;

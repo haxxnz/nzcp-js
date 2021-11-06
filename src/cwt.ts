@@ -1,11 +1,11 @@
 import { VC } from "./cwtPayloadTypes";
-import { CWTResult } from "./generalTypes";
+import { CWTClaimsResult } from "./generalTypes";
 
 type RawCWTPayload = Map<number | string, string | number | Buffer | unknown>;
 
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
-export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
+export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
   // Section 2.1.1.5
   // The claim key for cti of 7 MUST be used
   const ctiClaimRaw = rawCWTPayload.get(7);
@@ -29,7 +29,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
         section: "2.1.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined,
+      cwtClaims: undefined,
     };
   }
 
@@ -47,7 +47,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
         section: "2.1.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined,
+      cwtClaims: undefined,
     };
   }
   // Section 2.1.3.5
@@ -66,7 +66,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
           section: "2.1.3.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
-        cwtPayload: undefined,
+        cwtClaims: undefined,
       };
     }
   } else {
@@ -77,7 +77,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
         section: "2.1.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined,
+      cwtClaims: undefined,
     };
   }
 
@@ -97,7 +97,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
           section: "2.1.4.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
-        cwtPayload: undefined,
+        cwtClaims: undefined,
       };
     }
   } else {
@@ -108,7 +108,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
         section: "2.1.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined,
+      cwtClaims: undefined,
     };
   }
 
@@ -127,13 +127,13 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
         section: "2.1.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined,
+      cwtClaims: undefined,
     };
   }
 
   return {
     success: true,
-    cwtPayload: { jti, iss, nbf, exp, vc },
+    cwtClaims: { jti, iss, nbf, exp, vc },
     violates: undefined,
   };
 }

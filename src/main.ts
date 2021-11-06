@@ -1,11 +1,7 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
 
-// import { CWTPayload } from "./cwtPayloadTypes";
-// import { addBase32Padding, currentTimestamp } from "./util";
-// import { validateCOSESignature } from "./crypto";
 import did from "./did";
-// import { DID } from "./didTypes";
 import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims } from "./cwt";
@@ -168,13 +164,13 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   // TODO: what's decodedCOSEStructure.value[3]?
 
-  const cwtPayloadResult = parseCWTClaims(decodedCWTPayload);
-  if (!cwtPayloadResult.success) {
-    return cwtPayloadResult
+  const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
+  if (!cwtClaimsResult.success) {
+    return cwtClaimsResult
   }
-  const cwtPayload = cwtPayloadResult.cwtPayload;
+  const cwtClaims = cwtClaimsResult.cwtClaims;
 
-  if (currentTimestamp() >= cwtPayload.nbf) {
+  if (currentTimestamp() >= cwtClaims.nbf) {
     // pass
   } else {
     return {
@@ -188,7 +184,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  if (currentTimestamp() < cwtPayload.exp) {
+  if (currentTimestamp() < cwtClaims.exp) {
     // pass
   } else {
     return {
@@ -201,7 +197,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  const iss = cwtPayload.iss;
+  const iss = cwtClaims.iss;
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
