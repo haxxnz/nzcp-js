@@ -15,10 +15,10 @@ type Result =
   | {
       success: false;
       violates: {
+        message: string;
         section: string;
         link: string;
       };
-      error: Error;
     };
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
@@ -33,11 +33,10 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     // TODO: rewrite this logic, make it more follow the spec wording
     return {
       success: false,
-      error: new Error(
-        "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`"
-      ),
       violates: {
-        section: "§4",
+        message:
+          "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
+        section: "4.4",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
       },
     };
@@ -47,12 +46,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (payloadPrefix !== "NZCP:") {
     return {
       success: false,
-      error: new Error(
-        "The payload of the QR Code MUST begin with the prefix of `NZCP:/`"
-      ),
       violates: {
+        message:
+          "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
+        section: "4.5",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        section: "§4",
       },
     };
   }
@@ -63,12 +61,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (versionIdentifier !== "1") {
     return {
       success: false,
-      error: new Error(
-        "The version-identifier portion of the payload for the specification MUST be 1"
-      ),
       violates: {
+        message:
+          "The version-identifier portion of the payload for the specification MUST be 1",
+        section: "4.6",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        section: "§4",
       },
     };
   }
@@ -192,12 +189,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   } else {
     return {
       success: false,
-      error: new Error(
-        "The current datetime is after or equal to the value of the `nbf` claim"
-      ),
       violates: {
+        message:
+          "The current datetime is after or equal to the value of the `nbf` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "§2.1.nbf.3",
+        section: "2.1.3.3",
       },
     };
   }
@@ -207,12 +203,10 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   } else {
     return {
       success: false,
-      error: new Error(
-        "§2.1.exp.3 The current datetime is before the value of the `exp` claim"
-      ),
       violates: {
+        message: "The current datetime is before the value of the `exp` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "§2.1.exp.3",
+        section: "2.1.4.3",
       },
     };
   }
@@ -225,12 +219,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
-      error: new Error(
-        "`iss` value reported in the pass does not match one listed in the trusted issuers"
-      ),
       violates: {
-        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
-        section: "§5",
+        message:
+          "`iss` value reported in the pass does not match one listed in the trusted issuers",
+        link: "https://nzcp.covid19.health.nz/#trusted-issuers",
+        section: "6.3",
       },
     };
   }
@@ -245,10 +238,10 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (did.id !== iss) {
     return {
       success: false,
-      error: new Error("The Issuer did does not match the issuer identifier"),
       violates: {
+        message: "The Issuer did does not match the issuer identifier",
         link: "https://nzcp.covid19.health.nz/#issuer-identifier",
-        section: "§5",
+        section: "5.5",
       },
     };
   }
@@ -281,12 +274,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     // TODO: is it ok to reference examples?
     return {
       success: false,
-      error: new Error(
-        "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document"
-      ),
       violates: {
+        message:
+          "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document",
         link: "https://nzcp.covid19.health.nz/#bad-public-key",
-        section: "§7.3.1",
+        section: "7.3.1",
       },
     };
   }
@@ -364,12 +356,11 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (!result) {
     return {
       success: false,
-      error: new Error(
-        "Retrieved public key does not validate `COSE_Sign1` structure"
-      ),
       violates: {
+        message:
+          "Retrieved public key does not validate `COSE_Sign1` structure",
         link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
-        section: "§7.1",
+        section: "7.1.2.8",
       },
     };
   }
