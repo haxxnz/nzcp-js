@@ -380,7 +380,7 @@ export const validateNZCovidPass = async (
   const result = validateCOSESignature(
     uint8array,
     // TODO: why does typescript not like this? its checked to being not undefined just above...
-    verificationMethod.publicKeyJwk as JsonWebKey
+    publicKeyJwk
   );
 
   if (!result) {
