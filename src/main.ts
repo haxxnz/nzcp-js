@@ -19,7 +19,7 @@ interface Result {
   link?: string;
 }
 
-export const validateCovidPass = async (payload: string): Promise<Result> => {
+export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   // NZCP:/<version-identifier>/<base32-encoded-CWT>
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
