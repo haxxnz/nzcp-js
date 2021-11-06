@@ -5,11 +5,14 @@ import cbor from "cbor";
 import fetch from "node-fetch";
 import crypto from "crypto";
 import elliptic from "elliptic";
+import { CWTPayload } from "./cwtPayloadTypes";
+import { DID } from "./didTypes";
+import { currentTimestamp } from "./util";
 
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-export const validateCovidPassport = async (payload: string) => {
+export const validateCovidPass = async (payload: string): Promise<boolean> => {
   // NZCP:/<version-identifier>/<base32-encoded-CWT>
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
@@ -68,7 +71,7 @@ export const validateCovidPassport = async (payload: string) => {
   // 26              -- {Val:1}, -7
   const decodedCWTProtectedHeaders = cbor.decode(
     decodedCOSEStructure.value[0]
-  ) as Map<any, any>;
+  ) as Map<number, Buffer | number>;
 
   // quickly looked at some libs but they didn't look like they handled this...
   // this will need to be rewritten
@@ -76,24 +79,33 @@ export const validateCovidPassport = async (payload: string) => {
 
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const cwtProtectedHeaders = Array.from(
-    decodedCWTProtectedHeaders.entries()
-  ).reduce((prev, [key, value]) => {
-    if (key === 4) {
-      return { ...prev, kid: value.toString() };
+  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4)
+  let kid: string
+  if (CWTHeaderKid) {
+    kid = CWTHeaderKid.toString()
+  }
+  else {
+    throw Error("2.2.kid.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+  }
+  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1)
+  if (CWTHeaderAlg) {
+    if (CWTHeaderAlg === -7) {
+      // alg = "ES256"
+      // pass
     }
-    if (key === 1) {
-      if (value === -7) {
-        return { ...prev, alg: "ES256" };
-      }
-      throw Error();
+    else {
+      throw Error("2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
     }
-    throw Error();
-  }, {}) as any;
+  }
+  else {
+    throw Error("2.2.alg.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+  }
+
+
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
-    any,
-    any
+    number | string,
+    string | number | Buffer | unknown
   >;
 
   // quickly looked at some libs but they didn't look like they handled this...
@@ -104,24 +116,25 @@ export const validateCovidPassport = async (payload: string) => {
         return { ...prev, iss: value };
       }
       if (key === 7) {
-        const hexUuid = value.toString("hex");
-
-        return {
-          ...prev,
-          jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
-            8,
-            12
-          )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
-            20,
-            32
-          )}`,
-        };
+        if (value instanceof Buffer) {
+          const hexUuid = value.toString("hex");
+          return {
+            ...prev,
+            jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
+              8,
+              12
+            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
+              20,
+              32
+            )}`,
+          };
+        }
       }
       if (key === 4) {
         return { ...prev, exp: value };
       }
       if (key === 5) {
-        return { ...prev, nbj: value };
+        return { ...prev, nbf: value };
       }
       if (key === "vc") {
         return { ...prev, vc: value };
@@ -129,7 +142,23 @@ export const validateCovidPassport = async (payload: string) => {
       throw Error();
     },
     {}
-  ) as any;
+  ) as CWTPayload;
+
+  if (currentTimestamp() >= cwtPayload.nbf) {
+    // pass
+  }
+  else {
+    // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
+    return false
+  }
+
+  if (currentTimestamp() < cwtPayload.exp) {
+    // pass
+  }
+  else {
+    // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
+    return false
+  }
 
   // did:web:nzcp.covid19.health.nz
   const iss = cwtPayload.iss;
@@ -144,7 +173,7 @@ export const validateCovidPassport = async (payload: string) => {
   const wellKnownDidEndpoint =
     iss.replace("did:web:", "https://") + "/.well-known/did.json";
   const response = await fetch(wellKnownDidEndpoint);
-  const did = (await response.json()) as any;
+  const did = (await response.json()) as DID;
 
   if (did.id !== iss) {
     return false;
@@ -171,8 +200,15 @@ export const validateCovidPassport = async (payload: string) => {
   //   ]
   // }
   const verificationMethod = did.verificationMethod.find(
-    (v: any) => v.id === `${iss}#${cwtProtectedHeaders.kid}`
+    v => v.id === `${iss}#${kid}`
   );
+
+  if (!verificationMethod) {
+    // See "Public Key Not Found" example to trigger this
+    // https://nzcp.covid19.health.nz/#public-key-not-found
+    // throw new Error("Verification method for this Public Key is Not Found")
+    return false
+  }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
 
@@ -212,8 +248,6 @@ export const validateCovidPassport = async (payload: string) => {
   //p = cbor.decodeFirstSync(p);
   unprotected_ = Buffer.alloc(0);
   unprotected_ = unprotected_ || new Buffer("");
-
-  console.log(signature_);
 
   const EC = elliptic.ec;
   const ec = new EC("p256");
