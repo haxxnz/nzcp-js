@@ -65,3 +65,13 @@ test("Not Active pass is unsuccessful", async () => {
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.3.3");
 });
+
+
+// Custom Test: non base-32 string in the payload
+const notBase32 = "NZCP:/1/asdfghasSDFGHFDSADFGHFDSADFGHGFSDADFGBHFSADFGHFDSFGHFDDS0123456789"
+test("Non base-32 string in the payload Pass is unsuccessful", async () => {
+  const result = await validateNZCovidPass(notBase32, nzcpExamplesTrustedIssuers);
+  expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("4.7");
+});
+
