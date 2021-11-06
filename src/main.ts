@@ -138,9 +138,14 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
   if (CWTHeaderKid) {
     kid = CWTHeaderKid.toString();
   } else {
-    throw Error(
-      "§2.2.kid.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
-    );
+    return {
+      success: false,
+      violates: {
+        message: "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        section: "2.2.1.1",
+        link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      },
+    }
   }
   const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
   if (CWTHeaderAlg) {
@@ -148,14 +153,24 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
       // alg = "ES256"
       // pass
     } else {
-      throw Error(
-        "§2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration"
-      );
+      return {
+        success: false,
+        violates: {
+          message: "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
+          section: "2.2.2.2",
+          link: "https://nzcp.covid19.health.nz/#cwt-headers",
+        },
+      }
     }
   } else {
-    throw Error(
-      "§2.2.alg.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
-    );
+    return {
+      success: false,
+      violates: {
+        message: "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+        section: "2.2.2.1",
+        link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      },
+    }
   }
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
