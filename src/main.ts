@@ -21,7 +21,12 @@ type Result =
       error: Error;
     };
 
-export const validateNZCovidPass = async (payload: string): Promise<Result> => {
+// https://nzcp.covid19.health.nz/#trusted-issuers
+// The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
+// const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"] - This is what writtern in the spec, but it doesn't work atm, must be an error
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"] // This is the one that works
+
+export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
   // Decode the payload of the QR Code
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
@@ -212,13 +217,12 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
     };
   }
 
-  // did:web:nzcp.covid19.health.nz
   const iss = cwtPayload.iss;
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
   // TODO: make a list of trusted issuers as a config option
-  if (iss !== "did:web:nzcp.covid19.health.nz") {
+  if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
       error: new Error(
