@@ -11,7 +11,7 @@ import { currentTimestamp } from "./util";
 // https://nzcp.covid19.health.nz/
 
 type Result =
-  | { success: true }
+  | { success: true; violates: null }
   | {
       success: false;
       violates: {
@@ -367,5 +367,5 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
 
-  return { success: result as true };
+  return { success: result as true, violates: null };
 };
