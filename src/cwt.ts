@@ -118,20 +118,22 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTResult {
   let vc: VC;
   if (vcClaimRaw) {
     // TODO: verify vc claim using json-schema or something
-    vc = vcClaimRaw as VC
-  }
-  else {
+    vc = vcClaimRaw as VC;
+  } else {
     return {
       success: false,
       violates: {
         message: "Verifiable Credential CWT claim MUST be present",
         section: "2.1.5.1",
-        link: "https://nzcp.covid19.health.nz/#cwt-claims"
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtPayload: undefined
-    }
+      cwtPayload: undefined,
+    };
   }
 
-
-  return { success: true, cwtPayload: { jti, iss, nbf, exp, vc }, violates: undefined};
+  return {
+    success: true,
+    cwtPayload: { jti, iss, nbf, exp, vc },
+    violates: undefined,
+  };
 }
