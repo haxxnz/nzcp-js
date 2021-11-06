@@ -24,17 +24,17 @@ type Result =
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
-  // TODO: verify CWT @context
-  // TODO: verify CWT type
-  // TODO: verify CWT version
-  // TODO: verify CWT credentialSubject
-  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document
+  // TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
+  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
 
 export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
 
-  // Decode the payload of the QR Code
+  // Section 4: 2D Barcode Encoding
+  // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding
 
+  // Section 4.4
+  // Parse the form of QR Code payload
   const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
   const payloadMatch = payload.match(payloadRegex);
   if (!payloadMatch) {
@@ -51,6 +51,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
 
   const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
 
+  // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:/") {
     return {
@@ -64,6 +65,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
+  // Section 4.6
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
@@ -80,6 +82,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
+  // Section 4.7
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
   // [RFC4648] NOTE add back in padding if required, if an error is encountered during decoding then fail.
   let uint8array: Uint8Array
