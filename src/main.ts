@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 
 import { CWTPayload } from "./cwtPayloadTypes";
 import { DID } from "./didTypes";
-import { currentTimestamp } from "./util";
+import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
@@ -23,17 +23,21 @@ type Result =
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
-// const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"] - This is what writtern in the spec, but it doesn't work atm, must be an error
-const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"]; // This is the one that works
+const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
+  // TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
+  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
 
-export const validateNZCovidPass = async (
-  payload: string,
-  trustedIssuers = nzcpTrustedIssuers
-): Promise<Result> => {
-  // Decode the payload of the QR Code
-  const payloadParts = payload.split("/");
-  if (payloadParts.length !== 3) {
-    // TODO: rewrite this logic, make it more follow the spec wording
+export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
+
+  // Section 4: 2D Barcode Encoding
+  // Decoding the payload of the QR Code
+  // https://nzcp.covid19.health.nz/#2d-barcode-encoding
+
+  // Section 4.4
+  // Parse the form of QR Code payload
+  const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
+  const payloadMatch = payload.match(payloadRegex);
+  if (!payloadMatch) {
     return {
       success: false,
       violates: {
@@ -44,9 +48,12 @@ export const validateNZCovidPass = async (
       },
     };
   }
-  const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
+
+  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
+
+  // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
-  if (payloadPrefix !== "NZCP:") {
+  if (payloadPrefix !== "NZCP:/") {
     return {
       success: false,
       violates: {
@@ -57,6 +64,8 @@ export const validateNZCovidPass = async (
       },
     };
   }
+
+  // Section 4.6
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
@@ -73,19 +82,28 @@ export const validateNZCovidPass = async (
     };
   }
 
+  // Section 4.7
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
   // [RFC4648] NOTE add back in padding if required, if an error is encountered during decoding then fail.
-
-  const uint8array = base32.parse(
-    base32EncodedCtw,
-    // from https://github.com/swansontec/rfc4648.js
-    // If you pass the option { loose: true } in the second parameter, the parser will not validate padding characters (=):
-
-    // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
-    // Because the alphanumeric mode of QR codes does not include the = as a valid character,
-    // the padding of a base32 string represented by the = character MUST be removed prior to QR code encoding.
-    { loose: true }
-  );
+  let uint8array: Uint8Array
+  try {
+    uint8array = base32.parse(
+      // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
+      // Some base32 decoding implementations may fail to decode a base32 string that is missing the required padding as defined by [RFC4648].
+      // [addBase32Padding] is a simple javascript snippet designed to show how an implementor can add the required padding to a base32 string.
+      addBase32Padding(base32EncodedCWT),
+    );
+  }
+  catch (error) {
+    return {
+      success: false,
+      violates: {
+        message: "The payload of the QR Code MUST be base32 encoded",
+        section: "4.7",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    }
+  }
 
   // With the decoded payload attempt to decode it as COSE_Sign1 CBOR structure, if an error is encountered during decoding then fail.
 
