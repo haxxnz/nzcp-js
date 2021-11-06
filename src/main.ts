@@ -9,7 +9,7 @@ import elliptic from "elliptic";
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-export const validateCovidPassport = async (payload: string) => {
+export const validateCovidPassport = async (payload: string): Promise<boolean> => {
   // NZCP:/<version-identifier>/<base32-encoded-CWT>
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
