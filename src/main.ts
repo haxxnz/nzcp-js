@@ -1,11 +1,10 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
-import fetch from "node-fetch";
 
 import { CWTPayload } from "./cwtPayloadTypes";
-import { DID } from "./didTypes";
 import { currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
+import did from "./did";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
@@ -231,24 +230,6 @@ export const validateNZCovidPass = async (
     };
   }
 
-  // Following the rules outlined in issuer identifier retrieve the issuers public key that was used to sign the CWT, if an error occurs then fail.
-  const wellKnownDidEndpoint =
-    iss.replace("did:web:", "https://") + "/.well-known/did.json";
-  const response = await fetch(wellKnownDidEndpoint);
-  const did = (await response.json()) as DID;
-
-  // TODO: we should not be doing this on our own - use https://github.com/decentralized-identity/web-did-resolver
-  if (did.id !== iss) {
-    return {
-      success: false,
-      violates: {
-        message: "The Issuer did does not match the issuer identifier",
-        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
-        section: "5.5",
-      },
-    };
-  }
-
   // {
   //   "@context": "https://w3.org/ns/did/v1",
   //   "id": "did:web:nzcp.covid19.health.nz",
@@ -269,39 +250,151 @@ export const validateNZCovidPass = async (
   //     "did:web:nzcp.covid19.health.nz#key-1"
   //   ]
   // }
-  const verificationMethod = did.verificationMethod.find(
-    (v) => v.id === `${iss}#${kid}`
-  );
+  const didResult = await did.resolve(iss);
 
-  if (!verificationMethod) {
-    // TODO: is it ok to reference examples?
+  if (didResult.didResolutionMetadata.error) {
+    // an error came back from the offical DID reference implementation
+    // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
     return {
       success: false,
       violates: {
-        message:
-          "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document",
-        link: "https://nzcp.covid19.health.nz/#bad-public-key",
-        section: "7.3.1",
+        message: didResult.didResolutionMetadata.error,
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.1",
       },
     };
   }
 
-  // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
+  const absoluteKeyReference = `${iss}#${kid}`;
+
+  const didDocument = didResult.didDocument;
+
+  // 5.1.1
+  // The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.
+  if (!didDocument?.assertionMethod) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.1",
+      },
+    };
+  }
+  let assertionMethod = didDocument.assertionMethod;
+  if (typeof assertionMethod === "string") {
+    assertionMethod = [assertionMethod];
+  }
+  if (!assertionMethod.includes(absoluteKeyReference)) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.1",
+      },
+    };
+  }
+  // Not in NZCP spec but implied.. If theres an assertionMethod there should be a matching verification method
+  if (!didDocument.verificationMethod) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "No matching verificationMethod method for the assertionMethod",
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.2",
+      },
+    };
+  }
+  const verificationMethod = didDocument.verificationMethod.find(
+    (v) => v.id === absoluteKeyReference
+  );
+  if (!verificationMethod) {
+    return {
+      success: false,
+      violates: {
+        message: "No matching verificationMethod for the assertionMethod",
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.2",
+      },
+    };
+  }
+
+  const publicKeyJwk = verificationMethod?.publicKeyJwk;
+
+  // 5.1.2 (Note: Spec is written pretty hard to code against here... trying todo by best, could probably build the PK here?)
+  // The public key referenced by the decoded CWT MUST be a valid P-256 public key suitable for usage with the
+  // Elliptic Curve Digital Signature Algorithm (ECDSA) as defined in (ISO/IEC 14888–3:2006) section 2.3.
+
+  if (!publicKeyJwk || !publicKeyJwk?.x || !publicKeyJwk?.y) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.2",
+      },
+    };
+  }
+
+  // 5.1.3 TODO: check that publicKeyJwt is a valid JWK
+  // The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].
+  if (verificationMethod?.type !== "JsonWebKey2020") {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.3",
+      },
+    };
+  }
+
+  // TODO: 5.1.4 (Note: Seems more of a spec for a signer rather than a verifier... will do later)
+  // This public key JWK expression MUST NOT publish any JSON Web Key Parameters that are classified as “Private” under the “Parameter Information Class” category of the JSON Web Key Parameters IANA registry.
+
+  // 5.1.5
+  // This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.
+
+  if (publicKeyJwk.crv !== "P-256" || publicKeyJwk.kty !== "EC") {
+    return {
+      success: false,
+      violates: {
+        message:
+          "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.5",
+      },
+    };
+  }
+
+  // From section 3 "New Zealand COVID Passes MUST use Elliptic Curve Digital Signature Algorithm"
+  // this is hardcoded in validateCOSESignature
+
+  // From section 3 "all New Zealand COVID Passes MUST use the COSE_Sign1 structure"
+  // this structure is hardcoded in validateCOSESignature
 
   const result = validateCOSESignature(
     uint8array,
-    verificationMethod.publicKeyJwk
+    // TODO: why does typescript not like this? its checked to being not undefined just above...
+    verificationMethod.publicKeyJwk as JsonWebKey
   );
 
   if (!result) {
+    // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
     return {
       success: false,
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
         link:
-          "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
-        section: "7.1.2.8",
+          "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
+        section: "3",
       },
     };
   }
