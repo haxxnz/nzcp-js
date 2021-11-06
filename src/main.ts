@@ -7,6 +7,7 @@ import crypto from "crypto";
 import elliptic from "elliptic";
 import { CWTPayload } from "./cwtPayloadTypes";
 import { DID } from "./didTypes";
+import { currentTimestamp } from "./util";
 
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
@@ -143,6 +144,22 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
     {}
   ) as CWTPayload;
 
+  if (currentTimestamp() >= cwtPayload.nbf) {
+    // pass
+  }
+  else {
+    // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
+    return false
+  }
+
+  if (currentTimestamp() < cwtPayload.exp) {
+    // pass
+  }
+  else {
+    // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
+    return false
+  }
+
   // did:web:nzcp.covid19.health.nz
   const iss = cwtPayload.iss;
 
@@ -189,7 +206,8 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
   if (!verificationMethod) {
     // See "Public Key Not Found" example to trigger this
     // https://nzcp.covid19.health.nz/#public-key-not-found
-    throw new Error("Verification method for this Public Key is Not Found")
+    // throw new Error("Verification method for this Public Key is Not Found")
+    return false
   }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
