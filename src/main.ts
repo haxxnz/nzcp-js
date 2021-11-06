@@ -12,23 +12,31 @@ import { currentTimestamp } from "./util";
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-export const validateCovidPass = async (payload: string): Promise<boolean> => {
+// TODO: should we copy paragraphs from the NZCP spec verbatim?
+interface Result {
+  success: boolean;
+  message?: string;
+  link?: string;
+}
+
+export const validateCovidPass = async (payload: string): Promise<Result> => {
   // NZCP:/<version-identifier>/<base32-encoded-CWT>
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
-    return false;
+    // TODO: rewrite this logic, make it more follow the spec wording
+    return { success: false, message: "§4. The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`", link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding"};
   }
   const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:") {
-    return false;
+    return { success: false, message: "§4. The payload of the QR Code MUST begin with the prefix of `NZCP:/`", link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding"};
   }
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
   // NOTE - for instance in this version of the specification this value MUST be 1.
   if (versionIdentifier !== "1") {
-    return false;
+    return { success: false, message: "§4. The version-identifier portion of the payload for the current release of the specification MUST be 1", link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding"};
   }
 
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
@@ -85,7 +93,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
     kid = CWTHeaderKid.toString()
   }
   else {
-    throw Error("2.2.kid.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+    throw Error("§2.2.kid.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure");
   }
   const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1)
   if (CWTHeaderAlg) {
@@ -94,11 +102,11 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
       // pass
     }
     else {
-      throw Error("2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
+      throw Error("§2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
     }
   }
   else {
-    throw Error("2.2.alg.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
+    throw Error("§2.2.alg.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure");
   }
 
 
@@ -149,15 +157,15 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   }
   else {
     // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
-    return false
+    return { success: false, message: "§2.1.nbf.3 The current datetime is after or equal to the value of the `nbf` claim", link: "https://nzcp.covid19.health.nz/#cwt-claims" }
   }
 
   if (currentTimestamp() < cwtPayload.exp) {
     // pass
   }
   else {
-    // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
-    return false
+    // throw new Error(")
+    return { success: false, message: "§2.1.exp.3 The current datetime is before the value of the `exp` claim", link: "https://nzcp.covid19.health.nz/#cwt-claims" }
   }
 
   // did:web:nzcp.covid19.health.nz
@@ -165,8 +173,9 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
+  // TODO: make a list of trusted issuers as a config option
   if (iss !== "did:web:nzcp.covid19.health.nz") {
-    return false;
+    return { success: false, message: "§5. `iss` value reported in the pass does not match one listed in the trusted issuers", link: "https://nzcp.covid19.health.nz/#issuer-identifier" };
   }
 
   // Following the rules outlined in issuer identifier retrieve the issuers public key that was used to sign the CWT, if an error occurs then fail.
@@ -175,8 +184,9 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const response = await fetch(wellKnownDidEndpoint);
   const did = (await response.json()) as DID;
 
+  // TODO: we should not be doing this on our own - use https://github.com/decentralized-identity/web-did-resolver
   if (did.id !== iss) {
-    return false;
+    return { success: false, message: "§5 The Issuer did does not match the issuer identifier", link: "https://nzcp.covid19.health.nz/#issuer-identifier" };
   }
 
   // {
@@ -204,10 +214,8 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   );
 
   if (!verificationMethod) {
-    // See "Public Key Not Found" example to trigger this
-    // https://nzcp.covid19.health.nz/#public-key-not-found
-    // throw new Error("Verification method for this Public Key is Not Found")
-    return false
+    // TODO: is it ok to reference examples?
+    return { success: false , message: "§7.3.1 New Zealand COVID Pass references a public key that is not found in the Issuers DID Document", link: "https://nzcp.covid19.health.nz/#bad-public-key" }
   }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
@@ -282,10 +290,10 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const result = key.verify(messageHash, signature);
 
   if (!result) {
-    return false;
+    return { success: false, message: "§7.1 retrieved public key does not validate `COSE_Sign1` structure", link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass" };
   }
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
 
-  return result;
+  return { success: result as true };
 };
