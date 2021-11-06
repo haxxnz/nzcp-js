@@ -1,0 +1,5 @@
+blank_lines_upper_bound = 2
+control_brace_style = "ClosingNextLine"
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+max_width = 120
