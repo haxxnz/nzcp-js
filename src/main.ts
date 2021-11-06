@@ -1,49 +1,101 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { base32 } from "rfc4648";
-// note: this is certainly node only, need to switch out to cbor-web for web... just get it working in node first
 import cbor from "cbor";
-import fetch from "node-fetch";
-import crypto from "crypto";
-import elliptic from "elliptic";
-import { CWTPayload } from "./cwtPayloadTypes";
-import { DID } from "./didTypes";
-import { currentTimestamp } from "./util";
+import did from "./did";
+import { addBase32Padding, currentTimestamp } from "./util";
+import { validateCOSESignature } from "./crypto";
+import { parseCWTClaims } from "./cwt";
+import { Result } from "./generalTypes";
 
-// Specification:
-// https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-export const validateCovidPass = async (payload: string): Promise<boolean | object> => {
-  // NZCP:/<version-identifier>/<base32-encoded-CWT>
-  const payloadParts = payload.split("/");
-  if (payloadParts.length !== 3) {
-    return {success: false, message: "The payload is not valid"};
+
+// The function below implements v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
+
+
+
+// https://nzcp.covid19.health.nz/#trusted-issuers
+// The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
+const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
+  // TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
+  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
+
+export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
+
+  // Section 4: 2D Barcode Encoding
+  // Decoding the payload of the QR Code
+  // https://nzcp.covid19.health.nz/#2d-barcode-encoding
+
+  // Section 4.4
+  // Parse the form of QR Code payload
+  const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
+  const payloadMatch = payload.match(payloadRegex);
+  if (!payloadMatch) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
+        section: "4.4",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    };
   }
-  const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
+
+  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
+
+  // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
-  if (payloadPrefix !== "NZCP:") {
-    return {success: false, message: "The payload does not begin with the \"NZCP:/\" prefix"};
+  if (payloadPrefix !== "NZCP:/") {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
+        section: "4.5",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    };
   }
+
+  // Section 4.6
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
   // NOTE - for instance in this version of the specification this value MUST be 1.
   if (versionIdentifier !== "1") {
-    return {success: false, message: `The version identifier was not valid. Expected: 1 Recieved: ${versionIdentifier}`};
+    return {
+      success: false,
+      violates: {
+        message:
+          "The version-identifier portion of the payload for the specification MUST be 1",
+        section: "4.6",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    };
   }
 
+  // Section 4.7
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
   // [RFC4648] NOTE add back in padding if required, if an error is encountered during decoding then fail.
-
-  const uint8array = base32.parse(
-    base32EncodedCtw,
-    // from https://github.com/swansontec/rfc4648.js
-    // If you pass the option { loose: true } in the second parameter, the parser will not validate padding characters (=):
-
-    // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
-    // Because the alphanumeric mode of QR codes does not include the = as a valid character,
-    // the padding of a base32 string represented by the = character MUST be removed prior to QR code encoding.
-    { loose: true }
-  );
+  let uint8array: Uint8Array
+  try {
+    uint8array = base32.parse(
+      // from https://nzcp.covid19.health.nz/#2d-barcode-encoding
+      // Some base32 decoding implementations may fail to decode a base32 string that is missing the required padding as defined by [RFC4648].
+      // [addBase32Padding] is a simple javascript snippet designed to show how an implementor can add the required padding to a base32 string.
+      addBase32Padding(base32EncodedCWT),
+    );
+  }
+  catch (error) {
+    return {
+      success: false,
+      violates: {
+        message: "The payload of the QR Code MUST be base32 encoded",
+        section: "4.7",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    }
+  }
 
   // With the decoded payload attempt to decode it as COSE_Sign1 CBOR structure, if an error is encountered during decoding then fail.
 
@@ -79,104 +131,86 @@ export const validateCovidPass = async (payload: string): Promise<boolean | obje
 
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4)
-  let kid: string
+  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4);
+  let kid: string;
   if (CWTHeaderKid) {
-    kid = CWTHeaderKid.toString()
+    kid = CWTHeaderKid.toString();
+  } else {
+    throw Error(
+      "§2.2.kid.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
+    );
   }
-  else {
-    throw Error("2.2.kid.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
-  }
-  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1)
+  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
   if (CWTHeaderAlg) {
     if (CWTHeaderAlg === -7) {
       // alg = "ES256"
       // pass
+    } else {
+      throw Error(
+        "§2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration"
+      );
     }
-    else {
-      throw Error("2.2.alg.2 claim value MUST be set to the value corresponding to ES256 algorithm registration");
-    }
+  } else {
+    throw Error(
+      "§2.2.alg.1 This header MUST be present in the protected header section of the `COSE_Sign1` structure"
+    );
   }
-  else {
-    throw Error("2.2.alg.1 This header MUST be present in the protected header section of the COSE_Sign1 structure");
-  }
-
-
 
   const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
     number | string,
     string | number | Buffer | unknown
   >;
 
-  // quickly looked at some libs but they didn't look like they handled this...
-  // this will need to be rewritten
-  const cwtPayload = Array.from(decodedCWTPayload.entries()).reduce(
-    (prev, [key, value]) => {
-      if (key === 1) {
-        return { ...prev, iss: value };
-      }
-      if (key === 7) {
-        if (value instanceof Buffer) {
-          const hexUuid = value.toString("hex");
-          return {
-            ...prev,
-            jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
-              8,
-              12
-            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
-              20,
-              32
-            )}`,
-          };
-        }
-      }
-      if (key === 4) {
-        return { ...prev, exp: value };
-      }
-      if (key === 5) {
-        return { ...prev, nbf: value };
-      }
-      if (key === "vc") {
-        return { ...prev, vc: value };
-      }
-      throw Error();
-    },
-    {}
-  ) as CWTPayload;
+  // TODO: what's decodedCOSEStructure.value[3]?
 
-  if (currentTimestamp() >= cwtPayload.nbf) {
+  const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
+  if (!cwtClaimsResult.success) {
+    return cwtClaimsResult
+  }
+  const cwtClaims = cwtClaimsResult.cwtClaims;
+
+  if (currentTimestamp() >= cwtClaims.nbf) {
     // pass
-  }
-  else {
-    // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
-    return {success: false, message: "The pass provided not active."};
+  } else {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The current datetime is after or equal to the value of the `nbf` claim",
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "2.1.3.3",
+      },
+    };
   }
 
-  if (currentTimestamp() < cwtPayload.exp) {
+  if (currentTimestamp() < cwtClaims.exp) {
     // pass
-  }
-  else {
-    // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
-    return {success: false, message: "The pass provided is expired."};
+  } else {
+    return {
+      success: false,
+      violates: {
+        message: "The current datetime is before the value of the `exp` claim",
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "2.1.4.3",
+      },
+    };
   }
 
-  // did:web:nzcp.covid19.health.nz
-  const iss = cwtPayload.iss;
+  const iss = cwtClaims.iss;
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  if (iss !== "did:web:nzcp.covid19.health.nz") {
-    return {success: false, message: "The issuer identified is not a trusted issuer."};
-  }
-
-  // Following the rules outlined in issuer identifier retrieve the issuers public key that was used to sign the CWT, if an error occurs then fail.
-  const wellKnownDidEndpoint =
-    iss.replace("did:web:", "https://") + "/.well-known/did.json";
-  const response = await fetch(wellKnownDidEndpoint);
-  const did = (await response.json()) as DID;
-
-  if (did.id !== iss) {
-    return {success: false, message: `Failed to verify issuer. ${wellKnownDidEndpoint} did not provide a valid response`};
+  // TODO: make a list of trusted issuers as a config option
+  if (!trustedIssuers.includes(iss)) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "`iss` value reported in the pass does not match one listed in the trusted issuers",
+        link: "https://nzcp.covid19.health.nz/#trusted-issuers",
+        section: "6.3",
+      },
+    };
   }
 
   // {
@@ -199,93 +233,156 @@ export const validateCovidPass = async (payload: string): Promise<boolean | obje
   //     "did:web:nzcp.covid19.health.nz#key-1"
   //   ]
   // }
-  const verificationMethod = did.verificationMethod.find(
-    v => v.id === `${iss}#${kid}`
-  );
+  const didResult = await did.resolve(iss);
 
-  if (!verificationMethod) {
-    // See "Public Key Not Found" example to trigger this
-    // https://nzcp.covid19.health.nz/#public-key-not-found
-    // throw new Error("Verification method for this Public Key is Not Found")
-    return {success: false, message: "Public key not found."};
+  if (didResult.didResolutionMetadata.error) {
+    // an error came back from the offical DID reference implementation
+    // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
+    return {
+      success: false,
+      violates: {
+        message: didResult.didResolutionMetadata.error,
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.1",
+      },
+    };
   }
 
-  // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
+  const absoluteKeyReference = `${iss}#${kid}`;
 
-  // VERIFICATION ATTEMPT #1. Manual.
+  const didDocument = didResult.didDocument;
 
-  // eslint-disable-next-line prefer-const
-  // example CWT structure (https://datatracker.ietf.org/doc/html/rfc8392#appendix-A.3)
-  // 18(
-  //   [
-  //     / protected / << {
-  //       / alg / 1: -7 / ECDSA 256 /
-  //     } >>,
-  //     / unprotected / {
-  //       / kid / 4: h'4173796d6d657472696345434453413
-  //                    23536' / 'AsymmetricECDSA256' /
-  //     },
-  //     / payload / << {
-  //       / iss / 1: "coap://as.example.com",
-  //       / sub / 2: "erikw",
-  //       / aud / 3: "coap://light.example.com",
-  //       / exp / 4: 1444064944,
-  //       / nbf / 5: 1443944944,
-  //       / iat / 6: 1443944944,
-  //       / cti / 7: h'0b71'
-  //     } >>,
-  //     / signature / h'5427c1ff28d23fbad1f29c4c7c6a555e601d6fa29f
-  //                     9179bc3d7438bacaca5acd08c8d4d4f96131680c42
-  //                     9a01f85951ecee743a52b9b63632c57209120e1c9e
-  //                     30'
-  //   ]
-  // )
-  // start again for verifying...
-  const obj = cbor.decode(uint8array);
-  // adding _ to the end not to clash with previous things in this fn
-  // eslint-disable-next-line prefer-const
-  let [protected_, unprotected_, payload_, signature_] = obj.value;
-  //p = cbor.decodeFirstSync(p);
-  unprotected_ = Buffer.alloc(0);
-  unprotected_ = unprotected_ || new Buffer("");
+  // 5.1.1
+  // The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.
+  if (!didDocument?.assertionMethod) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.1",
+      },
+    };
+  }
+  let assertionMethod = didDocument.assertionMethod;
+  if (typeof assertionMethod === "string") {
+    assertionMethod = [assertionMethod];
+  }
+  if (!assertionMethod.includes(absoluteKeyReference)) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.1",
+      },
+    };
+  }
+  // Not in NZCP spec but implied.. If theres an assertionMethod there should be a matching verification method
+  if (!didDocument.verificationMethod) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "No matching verificationMethod method for the assertionMethod",
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.2",
+      },
+    };
+  }
+  const verificationMethod = didDocument.verificationMethod.find(
+    (v) => v.id === absoluteKeyReference
+  );
+  if (!verificationMethod) {
+    return {
+      success: false,
+      violates: {
+        message: "No matching verificationMethod for the assertionMethod",
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.2",
+      },
+    };
+  }
 
-  const EC = elliptic.ec;
-  const ec = new EC("p256");
+  const publicKeyJwk = verificationMethod?.publicKeyJwk;
 
-  const x = Buffer.from(verificationMethod.publicKeyJwk.x, "base64");
-  const y = Buffer.from(verificationMethod.publicKeyJwk.y, "base64");
+  // 5.1.2 (Note: Spec is written pretty hard to code against here... trying todo by best, could probably build the PK here?)
+  // The public key referenced by the decoded CWT MUST be a valid P-256 public key suitable for usage with the
+  // Elliptic Curve Digital Signature Algorithm (ECDSA) as defined in (ISO/IEC 14888–3:2006) section 2.3.
 
-  // Public Key MUST be either:
-  // 1) '04' + hex string of x + hex string of y; or
-  // x : zRR-XGsCp12Vvbgui4DD6O6cqmhfPuXMhi1OxPl8760 y: Iv5SU6FuW-TRYh5_GOrJlcV_gpF_GpFQhCOD8LSk3T0
-  const key = ec.keyFromPublic(
-    `04${x.toString("hex")}${y.toString("hex")}}`,
-    "hex"
+  if (!publicKeyJwk || !publicKeyJwk?.x || !publicKeyJwk?.y) {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.2",
+      },
+    };
+  }
+
+  // 5.1.3 TODO: check that publicKeyJwt is a valid JWK
+  // The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].
+  if (verificationMethod?.type !== "JsonWebKey2020") {
+    return {
+      success: false,
+      violates: {
+        message:
+          "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.3",
+      },
+    };
+  }
+
+  // TODO: 5.1.4 (Note: Seems more of a spec for a signer rather than a verifier... will do later)
+  // This public key JWK expression MUST NOT publish any JSON Web Key Parameters that are classified as “Private” under the “Parameter Information Class” category of the JSON Web Key Parameters IANA registry.
+
+  // 5.1.5
+  // This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.
+
+  if (publicKeyJwk.crv !== "P-256" || publicKeyJwk.kty !== "EC") {
+    return {
+      success: false,
+      violates: {
+        message:
+          "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
+        link: "https://nzcp.covid19.health.nz/#did-document",
+        section: "5.1.5",
+      },
+    };
+  }
+
+  // From section 3 "New Zealand COVID Passes MUST use Elliptic Curve Digital Signature Algorithm"
+  // this is hardcoded in validateCOSESignature
+
+  // From section 3 "all New Zealand COVID Passes MUST use the COSE_Sign1 structure"
+  // this structure is hardcoded in validateCOSESignature
+
+  const result = validateCOSESignature(
+    uint8array,
+    // TODO: why does typescript not like this? its checked to being not undefined just above...
+    verificationMethod.publicKeyJwk as JsonWebKey
   );
 
-  //   Sig_structure = [
-  //     context : "Signature" / "Signature1" / "CounterSignature",
-  //     body_protected : empty_or_serialized_map,
-  //     ? sign_protected : empty_or_serialized_map,
-  //     external_aad : bstr,
-  //     payload : bstr
-  // ]
-  const SigStructure = ["Signature1", protected_, Buffer.alloc(0), payload_];
-  const ToBeSigned = cbor.encode(SigStructure);
-
-  const messageHash = crypto.createHash("SHA256").update(ToBeSigned).digest();
-
-  const signature = {
-    r: signature_.slice(0, signature_.length / 2),
-    s: signature_.slice(signature_.length / 2),
-  };
-  const result = key.verify(messageHash, signature);
-
   if (!result) {
-    return {success: false, message: "The key could not be verified."};
+    // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
+    return {
+      success: false,
+      violates: {
+        message:
+          "Retrieved public key does not validate `COSE_Sign1` structure",
+        link:
+          "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
+        section: "3",
+      },
+    };
   }
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
 
-  return result;
+  return { success: result, violates: undefined };
 };
