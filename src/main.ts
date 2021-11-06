@@ -12,23 +12,23 @@ import { currentTimestamp } from "./util";
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-export const validateCovidPass = async (payload: string): Promise<boolean> => {
+export const validateCovidPass = async (payload: string): Promise<boolean | object> => {
   // NZCP:/<version-identifier>/<base32-encoded-CWT>
   const payloadParts = payload.split("/");
   if (payloadParts.length !== 3) {
-    return false;
+    return {success: false, message: "The payload is not valid"};
   }
   const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:") {
-    return false;
+    return {success: false, message: "The payload does not begin with the \"NZCP:/\" prefix"};
   }
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
   // suffix and before the next slash character (/) encountered. If this errors then fail.
   // If the value returned is un-recognized as a major protocol version supported by the verifying software then fail.
   // NOTE - for instance in this version of the specification this value MUST be 1.
   if (versionIdentifier !== "1") {
-    return false;
+    return {success: false, message: `The version identifier was not valid. Expected: 1 Recieved: ${versionIdentifier}`};
   }
 
   // With the remainder of the payload following the / after the version-identifier, attempt to decode it using base32 as defined by
@@ -149,7 +149,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   }
   else {
     // throw new Error("2.1.nbf.3 The current datetime is after or equal to the value of the nbf claim")
-    return false
+    return {success: false, message: "The pass provided not active."};
   }
 
   if (currentTimestamp() < cwtPayload.exp) {
@@ -157,7 +157,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   }
   else {
     // throw new Error("2.1.exp.3 The current datetime is before the value of the exp claim")
-    return false
+    return {success: false, message: "The pass provided is expired."};
   }
 
   // did:web:nzcp.covid19.health.nz
@@ -166,7 +166,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
   if (iss !== "did:web:nzcp.covid19.health.nz") {
-    return false;
+    return {success: false, message: "The issuer identified is not a trusted issuer."};
   }
 
   // Following the rules outlined in issuer identifier retrieve the issuers public key that was used to sign the CWT, if an error occurs then fail.
@@ -176,7 +176,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const did = (await response.json()) as DID;
 
   if (did.id !== iss) {
-    return false;
+    return {success: false, message: `Failed to verify issuer. ${wellKnownDidEndpoint} did not provide a valid response`};
   }
 
   // {
@@ -207,7 +207,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
     // See "Public Key Not Found" example to trigger this
     // https://nzcp.covid19.health.nz/#public-key-not-found
     // throw new Error("Verification method for this Public Key is Not Found")
-    return false
+    return {success: false, message: "Public key not found."};
   }
 
   // // With the retrieved public key validate the digital signature over the COSE_Sign1 structure, if an error occurs then fail.
@@ -282,7 +282,7 @@ export const validateCovidPass = async (payload: string): Promise<boolean> => {
   const result = key.verify(messageHash, signature);
 
   if (!result) {
-    return false;
+    return {success: false, message: "The key could not be verified."};
   }
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
