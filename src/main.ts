@@ -24,15 +24,20 @@ type Result =
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
+  // TODO: verify CWT @context
+  // TODO: verify CWT type
+  // TODO: verify CWT version
+  // TODO: verify CWT credentialSubject
+  // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document
 
 export const validateNZCovidPass = async (
   payload: string,
   trustedIssuers = nzcpTrustedIssuers
 ): Promise<Result> => {
   // Decode the payload of the QR Code
-  const payloadParts = payload.split("/");
-  if (payloadParts.length !== 3) {
-    // TODO: rewrite this logic, make it more follow the spec wording
+  const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
+  const payloadMatch = payload.match(payloadRegex);
+  if (!payloadMatch) {
     return {
       success: false,
       violates: {
@@ -43,9 +48,10 @@ export const validateNZCovidPass = async (
       },
     };
   }
-  const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
+
+  const [_match, payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadMatch;
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
-  if (payloadPrefix !== "NZCP:") {
+  if (payloadPrefix !== "NZCP:/") {
     return {
       success: false,
       violates: {
