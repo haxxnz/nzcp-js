@@ -12,19 +12,15 @@ import { currentTimestamp } from "./util";
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
 
-// TODO: should we copy paragraphs from the NZCP spec verbatim?
 type Result =
   | { success: true }
   | {
       success: false;
-      // error: Error;
-      // violates: {
-      //   section: string;
-      //   link: string,
-      // }
-      message: string;
-      section: string;
-      link: string;
+      violates: {
+        section: string;
+        link: string;
+      };
+      error: Error;
     };
 
 export const validateNZCovidPass = async (payload: string): Promise<Result> => {
@@ -34,10 +30,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
     // TODO: rewrite this logic, make it more follow the spec wording
     return {
       success: false,
-      message:
-        "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
-      section: "§4",
-      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      error: new Error(
+        "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`"
+      ),
+      violates: {
+        section: "§4",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
     };
   }
   const [payloadPrefix, versionIdentifier, base32EncodedCtw] = payloadParts;
@@ -45,10 +44,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   if (payloadPrefix !== "NZCP:") {
     return {
       success: false,
-      message:
-        "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
-      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-      section: "§4",
+      error: new Error(
+        "The payload of the QR Code MUST begin with the prefix of `NZCP:/`"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        section: "§4",
+      },
     };
   }
   // Parse the character(s) (representing the version-identifier) as an unsigned integer following the NZCP:/
@@ -58,10 +60,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   if (versionIdentifier !== "1") {
     return {
       success: false,
-      message:
-        "The version-identifier portion of the payload for the current release of the specification MUST be 1",
-      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-      section: "§4",
+      error: new Error(
+        "The version-identifier portion of the payload for the current release of the specification MUST be 1"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        section: "§4",
+      },
     };
   }
 
@@ -184,10 +189,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   } else {
     return {
       success: false,
-      message:
-        "The current datetime is after or equal to the value of the `nbf` claim",
-      link: "https://nzcp.covid19.health.nz/#cwt-claims",
-      section: "§2.1.nbf.3",
+      error: new Error(
+        "The current datetime is after or equal to the value of the `nbf` claim"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "§2.1.nbf.3",
+      },
     };
   }
 
@@ -196,10 +204,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   } else {
     return {
       success: false,
-      message:
-        "§2.1.exp.3 The current datetime is before the value of the `exp` claim",
-      link: "https://nzcp.covid19.health.nz/#cwt-claims",
-      section: "§2.1.exp.3",
+      error: new Error(
+        "§2.1.exp.3 The current datetime is before the value of the `exp` claim"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        section: "§2.1.exp.3",
+      },
     };
   }
 
@@ -212,10 +223,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   if (iss !== "did:web:nzcp.covid19.health.nz") {
     return {
       success: false,
-      message:
-        "`iss` value reported in the pass does not match one listed in the trusted issuers",
-      link: "https://nzcp.covid19.health.nz/#issuer-identifier",
-      section: "§5",
+      error: new Error(
+        "`iss` value reported in the pass does not match one listed in the trusted issuers"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
+        section: "§5",
+      },
     };
   }
 
@@ -229,9 +243,11 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   if (did.id !== iss) {
     return {
       success: false,
-      message: "The Issuer did does not match the issuer identifier",
-      link: "https://nzcp.covid19.health.nz/#issuer-identifier",
-      section: "§5",
+      error: new Error("The Issuer did does not match the issuer identifier"),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#issuer-identifier",
+        section: "§5",
+      },
     };
   }
 
@@ -263,10 +279,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
     // TODO: is it ok to reference examples?
     return {
       success: false,
-      message:
-        "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document",
-      link: "https://nzcp.covid19.health.nz/#bad-public-key",
-      section: "§7.3.1",
+      error: new Error(
+        "New Zealand COVID Pass references a public key that is not found in the Issuers DID Document"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#bad-public-key",
+        section: "§7.3.1",
+      },
     };
   }
 
@@ -344,9 +363,13 @@ export const validateNZCovidPass = async (payload: string): Promise<Result> => {
   if (!result) {
     return {
       success: false,
-      message: "Retrieved public key does not validate `COSE_Sign1` structure",
-      link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
-      section: "§7.1",
+      error: new Error(
+        "Retrieved public key does not validate `COSE_Sign1` structure"
+      ),
+      violates: {
+        link: "https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass",
+        section: "§7.1",
+      },
     };
   }
 
