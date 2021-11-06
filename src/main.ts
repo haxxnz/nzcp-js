@@ -20,6 +20,7 @@ const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
   // TODO: verify CWT @context, type, version, credentialSubject https://nzcp.covid19.health.nz/#cwt-claims (Section 2.1-2.4)
   // TODO: verify assertionMethod and other MUSTs in https://nzcp.covid19.health.nz/#did-document (Section 5.1)
 
+  // TODO: add tests for every error path
 export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcpTrustedIssuers): Promise<Result> => {
 
   // Section 4: 2D Barcode Encoding

@@ -14,6 +14,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
     const hexUuid = ctiClaimRaw.toString("hex");
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
+    // TODO: split out to a separate function https://nzcp.covid19.health.nz/#mapping-jti-cti
     jti = `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
       8,
       12
