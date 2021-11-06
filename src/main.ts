@@ -23,8 +23,7 @@ type Result =
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
-// const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"] - This is what writtern in the spec, but it doesn't work atm, must be an error
-const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"]; // This is the one that works
+const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"]
 
 export const validateNZCovidPass = async (
   payload: string,
