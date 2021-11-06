@@ -1,6 +1,5 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
-
 import did from "./did";
 import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
