@@ -5,14 +5,15 @@ interface CredentialSubject {
   dob: string;
 }
 
-interface VC {
+export interface VC {
   '@context': string[];
   version: string;
   type: string[];
   credentialSubject: CredentialSubject;
 }
 
-export interface CWTPayload {
+// TODO: rename to CWT claims
+export interface CWTClaims {
   iss: string;
   nbf: number;
   exp: number;

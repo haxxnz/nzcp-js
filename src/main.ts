@@ -1,24 +1,18 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
 
-import { CWTPayload } from "./cwtPayloadTypes";
+import did from "./did";
 import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
-import did from "./did";
+import { parseCWTClaims } from "./cwt";
+import { Result } from "./generalTypes";
+
+
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 
-type Result =
-  | { success: true; violates: undefined }
-  | {
-      success: false;
-      violates: {
-        message: string;
-        section: string;
-        link: string;
-      };
-    };
+
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
@@ -168,43 +162,15 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     string | number | Buffer | unknown
   >;
 
-  // quickly looked at some libs but they didn't look like they handled this...
-  // this will need to be rewritten
-  const cwtPayload = Array.from(decodedCWTPayload.entries()).reduce(
-    (prev, [key, value]) => {
-      if (key === 1) {
-        return { ...prev, iss: value };
-      }
-      if (key === 7) {
-        if (value instanceof Buffer) {
-          const hexUuid = value.toString("hex");
-          return {
-            ...prev,
-            jti: `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
-              8,
-              12
-            )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(
-              16,
-              20
-            )}-${hexUuid.slice(20, 32)}`,
-          };
-        }
-      }
-      if (key === 4) {
-        return { ...prev, exp: value };
-      }
-      if (key === 5) {
-        return { ...prev, nbf: value };
-      }
-      if (key === "vc") {
-        return { ...prev, vc: value };
-      }
-      throw Error();
-    },
-    {}
-  ) as CWTPayload;
+  // TODO: what's decodedCOSEStructure.value[3]?
 
-  if (currentTimestamp() >= cwtPayload.nbf) {
+  const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
+  if (!cwtClaimsResult.success) {
+    return cwtClaimsResult
+  }
+  const cwtClaims = cwtClaimsResult.cwtClaims;
+
+  if (currentTimestamp() >= cwtClaims.nbf) {
     // pass
   } else {
     return {
@@ -218,7 +184,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  if (currentTimestamp() < cwtPayload.exp) {
+  if (currentTimestamp() < cwtClaims.exp) {
     // pass
   } else {
     return {
@@ -231,7 +197,7 @@ export const validateNZCovidPass = async (payload: string, trustedIssuers = nzcp
     };
   }
 
-  const iss = cwtPayload.iss;
+  const iss = cwtClaims.iss;
 
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
