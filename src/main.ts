@@ -5,6 +5,7 @@ import cbor from "cbor";
 import fetch from "node-fetch";
 import crypto from "crypto";
 import elliptic from "elliptic";
+import { CWTPayload } from "./types";
 
 // Specification:
 // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
@@ -139,7 +140,7 @@ export const validateCovidPassport = async (payload: string): Promise<boolean> =
       throw Error();
     },
     {}
-  ) as any;
+  ) as CWTPayload;
 
   // did:web:nzcp.covid19.health.nz
   const iss = cwtPayload.iss;
