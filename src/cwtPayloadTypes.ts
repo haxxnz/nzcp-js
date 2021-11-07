@@ -1,5 +1,5 @@
 
-interface CredentialSubject {
+export interface CredentialSubject {
   givenName: string;
   familyName: string;
   dob: string;

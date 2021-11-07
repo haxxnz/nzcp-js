@@ -29,6 +29,7 @@ export const verifyNZCovidPass = async (
   if (!payloadMatch) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
@@ -46,6 +47,7 @@ export const verifyNZCovidPass = async (
   if (payloadPrefix !== "NZCP:/") {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
@@ -63,6 +65,7 @@ export const verifyNZCovidPass = async (
   if (versionIdentifier !== "1") {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The version-identifier portion of the payload for the specification MUST be 1",
@@ -86,6 +89,7 @@ export const verifyNZCovidPass = async (
   } catch (error) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message: "The payload of the QR Code MUST be base32 encoded",
         section: "4.7",
@@ -135,6 +139,7 @@ export const verifyNZCovidPass = async (
   } else {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
@@ -151,6 +156,7 @@ export const verifyNZCovidPass = async (
     } else {
       return {
         success: false,
+        credentialSubject: null,
         violates: {
           message:
             "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
@@ -162,6 +168,7 @@ export const verifyNZCovidPass = async (
   } else {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
@@ -180,7 +187,7 @@ export const verifyNZCovidPass = async (
 
   const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
   if (!cwtClaimsResult.success) {
-    return cwtClaimsResult;
+    return {...cwtClaimsResult, credentialSubject: null};
   }
   const cwtClaims = cwtClaimsResult.cwtClaims;
 
@@ -189,6 +196,7 @@ export const verifyNZCovidPass = async (
   } else {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The current datetime is after or equal to the value of the `nbf` claim",
@@ -203,6 +211,7 @@ export const verifyNZCovidPass = async (
   } else {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message: "The current datetime is before the value of the `exp` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
@@ -218,6 +227,7 @@ export const verifyNZCovidPass = async (
   if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "`iss` value reported in the pass does not match one listed in the trusted issuers",
@@ -254,6 +264,7 @@ export const verifyNZCovidPass = async (
     // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message: didResult.didResolutionMetadata.error,
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
@@ -271,6 +282,7 @@ export const verifyNZCovidPass = async (
   if (!didDocument?.assertionMethod) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
@@ -286,6 +298,7 @@ export const verifyNZCovidPass = async (
   if (!assertionMethod.includes(absoluteKeyReference)) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
@@ -298,6 +311,7 @@ export const verifyNZCovidPass = async (
   if (!didDocument.verificationMethod) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "No matching verificationMethod method for the assertionMethod",
@@ -312,6 +326,7 @@ export const verifyNZCovidPass = async (
   if (!verificationMethod) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message: "No matching verificationMethod for the assertionMethod",
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
@@ -329,6 +344,7 @@ export const verifyNZCovidPass = async (
   if (!publicKeyJwk || !publicKeyJwk?.x || !publicKeyJwk?.y) {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
@@ -343,6 +359,7 @@ export const verifyNZCovidPass = async (
   if (verificationMethod?.type !== "JsonWebKey2020") {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
@@ -361,6 +378,7 @@ export const verifyNZCovidPass = async (
   if (publicKeyJwk.crv !== "P-256" || publicKeyJwk.kty !== "EC") {
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
@@ -385,6 +403,7 @@ export const verifyNZCovidPass = async (
     // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
     return {
       success: false,
+      credentialSubject: null,
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
@@ -397,5 +416,5 @@ export const verifyNZCovidPass = async (
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
   // TODO: ilia
 
-  return { success: result, violates: null };
+  return { success: result, violates: null, credentialSubject: cwtClaims.vc.credentialSubject };
 };

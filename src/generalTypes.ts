@@ -1,4 +1,4 @@
-import { CWTClaims } from "./cwtPayloadTypes";
+import { CredentialSubject, CWTClaims } from "./cwtPayloadTypes";
 
 export interface Violates {
   message: string;
@@ -7,8 +7,8 @@ export interface Violates {
 }
 
 export type VerificationResult =
-  | { success: true; violates: null }
-  | { success: false; violates: Violates };
+  | { success: true; violates: null, credentialSubject: CredentialSubject }
+  | { success: false; violates: Violates, credentialSubject: null };
 
 export type CWTClaimsResult =
   | { success: true; violates: null; cwtClaims: CWTClaims }

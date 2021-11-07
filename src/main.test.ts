@@ -10,6 +10,9 @@ const validPass =
 test("Valid pass is successful", async () => {
   const result = await verifyNZCovidPass(validPass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(true);
+  expect(result.credentialSubject?.givenName).toBe("Jack");
+  expect(result.credentialSubject?.familyName).toBe("Sparrow");
+  expect(result.credentialSubject?.dob).toBe("1960-04-16");
 });
 
 // https://nzcp.covid19.health.nz/#bad-public-key
