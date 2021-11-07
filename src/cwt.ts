@@ -30,7 +30,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         section: "2.1.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -48,7 +48,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         section: "2.1.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
   // Section 2.1.3.5
@@ -67,7 +67,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
           section: "2.1.3.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
-        cwtClaims: undefined,
+        cwtClaims: null,
       };
     }
   } else {
@@ -78,7 +78,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         section: "2.1.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -98,7 +98,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
           section: "2.1.4.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
-        cwtClaims: undefined,
+        cwtClaims: null,
       };
     }
   } else {
@@ -109,7 +109,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         section: "2.1.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -127,7 +127,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         section: "2.1.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -154,7 +154,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.2",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -181,7 +181,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.5",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -197,7 +197,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.8",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
@@ -213,7 +213,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.1",
         },
-        cwtClaims: undefined,
+        cwtClaims: null,
       };
     }
     if (!vc.credentialSubject.dob) {
@@ -224,7 +224,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.2",
         },
-        cwtClaims: undefined,
+        cwtClaims: null,
       };
     }
   } else {
@@ -236,13 +236,13 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.9",
       },
-      cwtClaims: undefined,
+      cwtClaims: null,
     };
   }
 
   return {
     success: true,
     cwtClaims: { jti, iss, nbf, exp, vc },
-    violates: undefined,
+    violates: null,
   };
 }

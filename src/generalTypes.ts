@@ -7,9 +7,9 @@ export interface Violates {
 }
 
 export type Result =
-  | { success: true; violates: undefined }
+  | { success: true; violates: null }
   | { success: false; violates: Violates };
 
 export type CWTClaimsResult =
-  | { success: true; violates: undefined; cwtClaims: CWTClaims }
-  | { success: false; violates: Violates; cwtClaims: undefined };
+  | { success: true; violates: null; cwtClaims: CWTClaims }
+  | { success: false; violates: Violates; cwtClaims: null };

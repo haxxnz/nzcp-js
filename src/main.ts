@@ -397,5 +397,5 @@ export const verifyNZCovidPass = async (
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
   // TODO: ilia
 
-  return { success: result, violates: undefined };
+  return { success: result, violates: null };
 };
