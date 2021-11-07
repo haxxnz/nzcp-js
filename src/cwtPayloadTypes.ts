@@ -21,6 +21,8 @@ export interface CWTClaims {
   jti: string;
 }
 
+export type UnvalidatedCWTClaims = Partial<CWTClaims>
+
 
 
 export type RawCWTHeaders = Map<number, Buffer | number>;
