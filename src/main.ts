@@ -4,7 +4,7 @@ import did from "./did";
 import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims } from "./cwt";
-import { Result } from "./generalTypes";
+import { VerificationResult } from "./generalTypes";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
@@ -17,7 +17,7 @@ const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 export const verifyNZCovidPass = async (
   payload: string,
   trustedIssuers = nzcpTrustedIssuers
-): Promise<Result> => {
+): Promise<VerificationResult> => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding

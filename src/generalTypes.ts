@@ -6,7 +6,7 @@ export interface Violates {
   link: string;
 }
 
-export type Result =
+export type VerificationResult =
   | { success: true; violates: null }
   | { success: false; violates: Violates };
 
