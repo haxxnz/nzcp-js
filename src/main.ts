@@ -193,7 +193,7 @@ export const verifyNZCovidPass = async (
         message:
           "The current datetime is after or equal to the value of the `nbf` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "2.1.3.3",
+        section: "2.1.0.3.3",
       },
     };
   }
@@ -206,7 +206,7 @@ export const verifyNZCovidPass = async (
       violates: {
         message: "The current datetime is before the value of the `exp` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "2.1.4.3",
+        section: "2.1.0.4.3",
       },
     };
   }

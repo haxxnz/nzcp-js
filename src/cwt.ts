@@ -7,8 +7,7 @@ type RawCWTPayload = Map<number | string, string | number | Buffer | unknown>;
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
 export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
-  // TODO: fix section number
-  // Section 2.1.1.5
+  // Section 2.1.0.1.5
   // The claim key for cti of 7 MUST be used
   const ctiClaimRaw = rawCWTPayload.get(7);
   let jti: string;
@@ -26,14 +25,14 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
       success: false,
       violates: {
         message: "CWT Token ID claim MUST be present",
-        section: "2.1.1.1",
+        section: "2.1.0.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       cwtClaims: null,
     };
   }
 
-  // Section 2.1.2.5
+  // Section 2.1.0.2.5
   // The claim key for iss of 1 MUST be used
   const issClaimRaw = rawCWTPayload.get(1);
   let iss: string;
@@ -44,13 +43,13 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
       success: false,
       violates: {
         message: "Issuer claim MUST be present",
-        section: "2.1.2.1",
+        section: "2.1.0.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       cwtClaims: null,
     };
   }
-  // Section 2.1.3.5
+  // Section 2.1.0.3.5
   // The claim key for nbf of 5 MUST be used
   const nbfClaimRaw = rawCWTPayload.get(5);
   let nbf: number;
@@ -63,7 +62,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         violates: {
           message:
             "Not Before claim MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
-          section: "2.1.3.2",
+          section: "2.1.0.3.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
         cwtClaims: null,
@@ -74,14 +73,14 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
       success: false,
       violates: {
         message: "Not Before claim MUST be present",
-        section: "2.1.3.1",
+        section: "2.1.0.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       cwtClaims: null,
     };
   }
 
-  // Section 2.1.4.5
+  // Section 2.1.0.4.5
   // The claim key for exp of 4 MUST be used
   const expClaimRaw = rawCWTPayload.get(4);
   let exp: number;
@@ -94,7 +93,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
         violates: {
           message:
             "Not Before claim MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
-          section: "2.1.4.2",
+          section: "2.1.0.4.2",
           link: "https://nzcp.covid19.health.nz/#cwt-claims",
         },
         cwtClaims: null,
@@ -105,14 +104,14 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
       success: false,
       violates: {
         message: "Not Before claim MUST be present",
-        section: "2.1.4.1",
+        section: "2.1.0.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       cwtClaims: null,
     };
   }
 
-  // Section 2.1.5.3
+  // Section 2.1.0.5.3
   // The vc claim is currrently unregistered and therefore MUST be encoded as a Major Type 3 string as defined by [RFC7049].
   const vcClaimRaw = rawCWTPayload.get("vc");
   let vc: VC;
@@ -123,7 +122,7 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
       success: false,
       violates: {
         message: "Verifiable Credential CWT claim MUST be present",
-        section: "2.1.5.1",
+        section: "2.1.0.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       cwtClaims: null,

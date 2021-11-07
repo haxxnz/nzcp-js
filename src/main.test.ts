@@ -54,7 +54,7 @@ const expiredPass =
 test("Expired Pass is unsuccessful", async () => {
   const result = await verifyNZCovidPass(expiredPass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("2.1.4.3");
+  expect(result.violates?.section).toBe("2.1.0.4.3");
 });
 
 // https://nzcp.covid19.health.nz/#not-active-pass
@@ -63,7 +63,7 @@ const notActivePass =
 test("Not Active pass is unsuccessful", async () => {
   const result = await verifyNZCovidPass(notActivePass, nzcpExamplesTrustedIssuers);
   expect(result.success).toBe(false);
-  expect(result.violates?.section).toBe("2.1.3.3");
+  expect(result.violates?.section).toBe("2.1.0.3.3");
 });
 
 
