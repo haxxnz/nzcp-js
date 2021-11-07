@@ -1,4 +1,4 @@
-import { VC } from "./cwtPayloadTypes";
+import { RawCWTHeaders, UnvalidatedCWTHeaders, VC } from "./cwtPayloadTypes";
 import { CWTClaimsResult } from "./generalTypes";
 import { decodeCtiToJti } from "./jtiCti";
 
@@ -6,6 +6,7 @@ type RawCWTPayload = Map<number | string, string | number | Buffer | unknown>;
 
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
+// TODO: rename to rawCWTClaims
 export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
   // Section 2.1.0.1.5
   // The claim key for cti of 7 MUST be used
@@ -243,4 +244,23 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
     cwtClaims: { jti, iss, nbf, exp, vc },
     violates: null,
   };
+}
+
+// Section 2.2
+// CWT Headers
+// https://nzcp.covid19.health.nz/#cwt-headers
+export function parseCWTHeaders(rawCWTHeaders: RawCWTHeaders): UnvalidatedCWTHeaders {
+  // Section 2.2.1
+  // The claim key of 4 is used to identify `kid` claim
+  const CWTHeaderKid = rawCWTHeaders.get(4);
+  // Section 2.2.2
+  // The claim key of 1 is used to identify `alg` claim
+  const CWTHeaderAlg = rawCWTHeaders.get(1);
+  // Section 2.2.1
+  // `kid` value MUST be encoded as a Major Type 3
+  const kid = CWTHeaderKid ? CWTHeaderKid.toString() : undefined;
+  // Section 2.2.2
+  // `alg` claim value MUST be set to the value corresponding to ES256 algorithm registration, which is the numeric value of -7
+  const alg = CWTHeaderAlg === -7 ? "ES256" : undefined;
+  return { kid, alg };
 }

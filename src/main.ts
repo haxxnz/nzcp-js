@@ -3,7 +3,7 @@ import cbor from "cbor";
 import did from "./did";
 import { addBase32Padding, currentTimestamp } from "./util";
 import { validateCOSESignature } from "./crypto";
-import { parseCWTClaims } from "./cwt";
+import { parseCWTClaims, parseCWTHeaders } from "./cwt";
 import { VerificationResult } from "./generalTypes";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
@@ -126,16 +126,14 @@ export const verifyNZCovidPass = async (
     decodedCOSEStructure.value[0]
   ) as Map<number, Buffer | number>;
 
-  // quickly looked at some libs but they didn't look like they handled this...
-  // this will need to be rewritten
-  // TODO:
+  const cwtHeaders = parseCWTHeaders(decodedCWTProtectedHeaders);
 
+  // Section 7.1
+  // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4);
-  let kid: string;
-  if (CWTHeaderKid) {
-    kid = CWTHeaderKid.toString();
+  if (cwtHeaders.kid) {
+    // pass
   } else {
     return {
       success: false,
@@ -148,31 +146,16 @@ export const verifyNZCovidPass = async (
       },
     };
   }
-  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
-  if (CWTHeaderAlg) {
-    if (CWTHeaderAlg === -7) {
-      // alg = "ES256"
-      // pass
-    } else {
-      return {
-        success: false,
-        credentialSubject: null,
-        violates: {
-          message:
-            "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
-          section: "2.2.2.2",
-          link: "https://nzcp.covid19.health.nz/#cwt-headers",
-        },
-      };
-    }
+  if (cwtHeaders.alg === "ES256") {
+    // pass
   } else {
     return {
       success: false,
       credentialSubject: null,
       violates: {
         message:
-          "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
-        section: "2.2.2.1",
+          "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
+        section: "2.2.2.2",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
       },
     };
@@ -273,7 +256,7 @@ export const verifyNZCovidPass = async (
     };
   }
 
-  const absoluteKeyReference = `${iss}#${kid}`;
+  const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
   const didDocument = didResult.didDocument;
 
