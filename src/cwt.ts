@@ -1,27 +1,21 @@
 import { VC } from "./cwtPayloadTypes";
 import { CWTClaimsResult } from "./generalTypes";
+import { decodeCtiToJti } from "./jtiCti";
 
 type RawCWTPayload = Map<number | string, string | number | Buffer | unknown>;
 
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
 export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
+  // TODO: fix section number
   // Section 2.1.1.5
   // The claim key for cti of 7 MUST be used
   const ctiClaimRaw = rawCWTPayload.get(7);
   let jti: string;
   if (ctiClaimRaw && ctiClaimRaw instanceof Buffer) {
-    const hexUuid = ctiClaimRaw.toString("hex");
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
-    // TODO: split out to a separate function https://nzcp.covid19.health.nz/#mapping-jti-cti
-    jti = `urn:uuid:${hexUuid.slice(0, 8)}-${hexUuid.slice(
-      8,
-      12
-    )}-${hexUuid.slice(12, 16)}-${hexUuid.slice(16, 20)}-${hexUuid.slice(
-      20,
-      32
-    )}`;
+    jti = decodeCtiToJti(ctiClaimRaw);
   } else {
     return {
       success: false,
