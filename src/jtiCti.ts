@@ -1,14 +1,12 @@
-// Section 2.1.1
-// Decode CTI to JTI. Conforms to RFC4122
-
 import { JTIResult } from "./generalTypes";
 
+// Section 2.1.1
+// Decode CTI to JTI. Conforms to RFC4122
 // https://nzcp.covid19.health.nz/#mapping-jti-cti
 export function decodeCtiToJti(rawCti: Buffer): JTIResult {
   // Section 2.1.1.10.1
   // Parse the 16 byte value and convert to hexadecimal form
   if (rawCti.length !== 16) {
-    // throw new Error(`CTI must be 16 bytes, but was ${rawCti.length} bytes.`);
     return {
       success: false,
       violates: {
