@@ -15,7 +15,12 @@ export function parseCWTClaims(rawCWTPayload: RawCWTPayload): CWTClaimsResult {
   if (ctiClaimRaw && ctiClaimRaw instanceof Buffer) {
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
-    jti = decodeCtiToJti(ctiClaimRaw);
+    const jtiResult = decodeCtiToJti(ctiClaimRaw);
+    if (jtiResult.success) {
+      jti = jtiResult.jti;
+    } else {
+      return { ...jtiResult, cwtClaims: null };
+    }
   } else {
     return {
       success: false,
