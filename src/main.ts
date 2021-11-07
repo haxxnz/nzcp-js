@@ -14,7 +14,7 @@ import { Result } from "./generalTypes";
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
 // TODO: add tests for every error path
-export const validateNZCovidPass = async (
+export const verifyNZCovidPass = async (
   payload: string,
   trustedIssuers = nzcpTrustedIssuers
 ): Promise<Result> => {
@@ -395,6 +395,7 @@ export const validateNZCovidPass = async (
   }
 
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
+  // TODO: ilia
 
   return { success: result, violates: undefined };
 };
