@@ -1,9 +1,9 @@
 import { base32 } from "rfc4648";
 import cbor from "cbor";
 import did from "./did";
-import { addBase32Padding, currentTimestamp } from "./util";
+import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
-import { parseCWTClaims } from "./cwt";
+import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
 import { VerificationResult } from "./generalTypes";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
@@ -126,16 +126,14 @@ export const verifyNZCovidPass = async (
     decodedCOSEStructure.value[0]
   ) as Map<number, Buffer | number>;
 
-  // quickly looked at some libs but they didn't look like they handled this...
-  // this will need to be rewritten
-  // TODO:
+  const cwtHeaders = parseCWTHeaders(decodedCWTProtectedHeaders);
 
+  // Section 7.1
+  // https://nzcp.covid19.health.nz/#steps-to-verify-a-new-zealand-covid-pass
   // With the headers returned from the COSE_Sign1 decoding step, check for the presence
   // of the required headers as defined in the data model section, if these conditions are not meet then fail.
-  const CWTHeaderKid = decodedCWTProtectedHeaders.get(4);
-  let kid: string;
-  if (CWTHeaderKid) {
-    kid = CWTHeaderKid.toString();
+  if (cwtHeaders.kid) {
+    // pass
   } else {
     return {
       success: false,
@@ -148,31 +146,16 @@ export const verifyNZCovidPass = async (
       },
     };
   }
-  const CWTHeaderAlg = decodedCWTProtectedHeaders.get(1);
-  if (CWTHeaderAlg) {
-    if (CWTHeaderAlg === -7) {
-      // alg = "ES256"
-      // pass
-    } else {
-      return {
-        success: false,
-        credentialSubject: null,
-        violates: {
-          message:
-            "`alg` claim value MUST be set to the value corresponding to ES256 algorithm registration",
-          section: "2.2.2.2",
-          link: "https://nzcp.covid19.health.nz/#cwt-headers",
-        },
-      };
-    }
+  if (cwtHeaders.alg === "ES256") {
+    // pass
   } else {
     return {
       success: false,
       credentialSubject: null,
       violates: {
         message:
-          "`alg` header MUST be present in the protected header section of the `COSE_Sign1` structure",
-        section: "2.2.2.1",
+          "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
+        section: "2.2.2.2",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
       },
     };
@@ -185,43 +168,25 @@ export const verifyNZCovidPass = async (
 
   // TODO: what's decodedCOSEStructure.value[3]?
 
-  const cwtClaimsResult = parseCWTClaims(decodedCWTPayload);
-  if (!cwtClaimsResult.success) {
-    return {...cwtClaimsResult, credentialSubject: null};
-  }
-  const cwtClaims = cwtClaimsResult.cwtClaims;
-
-  if (currentTimestamp() >= cwtClaims.nbf) {
-    // pass
-  } else {
-    return {
-      success: false,
-      credentialSubject: null,
-      violates: {
-        message:
-          "The current datetime is after or equal to the value of the `nbf` claim",
-        link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "2.1.0.3.3",
-      },
-    };
-  }
-
-  if (currentTimestamp() < cwtClaims.exp) {
-    // pass
-  } else {
-    return {
-      success: false,
-      credentialSubject: null,
-      violates: {
-        message: "The current datetime is before the value of the `exp` claim",
-        link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        section: "2.1.0.4.3",
-      },
-    };
-  }
+  const cwtClaims = parseCWTClaims(decodedCWTPayload);
 
   const iss = cwtClaims.iss;
 
+  // Section 2.1.0.2.1
+  // Issuer claim MUST be present
+  if (!iss) {
+    return {
+      success: false,
+      violates: {
+        message: "Issuer claim MUST be present",
+        section: "2.1.0.2.1",
+        link: "https://nzcp.covid19.health.nz/#cwt-claims",
+      },
+      credentialSubject: null,
+    }
+  }
+
+  // TODO: section number?
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
   if (!trustedIssuers.includes(iss)) {
@@ -273,7 +238,7 @@ export const verifyNZCovidPass = async (
     };
   }
 
-  const absoluteKeyReference = `${iss}#${kid}`;
+  const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
   const didDocument = didResult.didDocument;
 
@@ -413,8 +378,15 @@ export const verifyNZCovidPass = async (
     };
   }
 
+  // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  // TODO: ilia
+  const cwtClaimsResult = validateCWTClaims(cwtClaims)
+  if (!cwtClaimsResult.success) {
+    return {
+      ...cwtClaimsResult,
+      credentialSubject: null,
+    }
+  }
 
-  return { success: result, violates: null, credentialSubject: cwtClaims.vc.credentialSubject };
+  return { success: result, violates: null, credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject };
 };
