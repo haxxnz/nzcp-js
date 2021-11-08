@@ -1,5 +1,5 @@
 import cbor from "cbor";
-import crypto from "crypto";
+import { sha256 } from "js-sha256";
 import elliptic from "elliptic";
 import { DecodedCOSEStructure } from "./coseTypes";
 
@@ -33,7 +33,7 @@ export function validateCOSESignature(
   // ]
   const SigStructure = ["Signature1", protected_, Buffer.alloc(0), payload_];
   const ToBeSigned = cbor.encode(SigStructure);
-  const messageHash = crypto.createHash("SHA256").update(ToBeSigned).digest();
+  const messageHash = sha256.digest(ToBeSigned)
   const signature = {
     r: signature_.slice(0, signature_.length / 2),
     s: signature_.slice(signature_.length / 2),
