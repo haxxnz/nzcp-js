@@ -22,10 +22,8 @@ export function validateCOSESignature(
   const yBuf = Buffer.from(publicKeyJwt.y, "base64");
 
   // 1) '04' + hex string of x + hex string of y
-  const key = ec.keyFromPublic(
-    `04${xBuf.toString("hex")}${yBuf.toString("hex")}}`,
-    "hex"
-  );
+  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}}`;
+  const key = ec.keyFromPublic(publicKeyHex, "hex");
   //   Sig_structure = [
   //     context : "Signature" / "Signature1" / "CounterSignature",
   //     body_protected : empty_or_serialized_map,
