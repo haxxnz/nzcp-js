@@ -1,6 +1,6 @@
 # NZCP.js
 
-A verification library for COVID-19 Vaccine Passes in New Zealand built on top of the [NZ Covid Pass Spec](https://github.com/minhealthnz/nzcovidpass-spec) provided by the Ministry of Health. All contributions welcome 🥳
+A JavaScript implementation of [NZ COVID Pass](https://github.com/minhealthnz/nzcovidpass-spec) verification, New Zealand's proof of COVID-19 vaccination solution, written in TypeScript. All contributions welcome 🥳
 
 > This library can be used for both Client and Server-side implementations.
 
@@ -8,18 +8,16 @@ A verification library for COVID-19 Vaccine Passes in New Zealand built on top o
 
 ```bash
 # NPM
-npm i __package-name__
+npm i @vaxxnz/nzcp
 
 # Yarn
-yarn add __package-name__
+yarn add @vaxxnz/nzcp
 ```
-
-Peer dependencies on: cbor, did-resolver, elliptic, rfc4648, web-did-resolver
 
 ## Usage
 
 ```javascript
-import { verifyPass } from "__package-name__";
+import { verifyPass } from "@vaxxnz/nzcp";
 
 // Verify a New Zealand COVID-19 Pass
 const result = await verifyPass("NZCP:/1/2KCEVIQEIVVWK6...");
@@ -57,23 +55,6 @@ On **unsuccessful** verification of the given pass, the `verifyPass` method retu
 }
 ```
 
-### Advanced Parameters
-
-To allow for flexibility in this library, the `verifyPass` method allows for additional parameters as documented below.
-
-#### Customize Trusted Issuers
-
-```javascript
-// An array of trusted issuers which work with the NZ COVID Pass - Technical Specification
-// https://nzcp.covid19.health.nz/
-const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
-
-const result = await verifyPass(
-  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
-  nzcpTrustedIssuers            // Array of trusted issuers
-);
-```
-
 ## Support
 
 See something that can be improved? [Report an Issue](https://github.com/vaxxnz/nzcp-js/issues) or contact us to [report a security concern](mailto:info@vaxx.nz).
@@ -82,17 +63,16 @@ Want to help us build a better library? We welcome contributions via [pull reque
 
 ---
 
-### Yarn Commands
+## Contribute
 
 ```bash
 # Install dependencies
 yarn install
-# Now you can run various yarn commands:
-yarn cli
+```
+```bash
+# Use developer scripts
 yarn lint
 yarn test
+yarn test-watch
 yarn build-all
-yarn ts-node <filename>
-yarn esbuild-browser
-...
 ```
