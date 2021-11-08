@@ -14,6 +14,8 @@ npm i __package-name__
 yarn add __package-name__
 ```
 
+Peer dependencies on: cbor, did-resolver, elliptic, rfc4648, web-did-resolver
+
 
 ## Getting Started
 
