@@ -1,18 +1,19 @@
 import cbor from "cbor";
 import crypto from "crypto";
 import elliptic from "elliptic";
+import { COSETaggedItem } from "./coseTypes";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
 
 export function validateCOSESignature(
-  cosePayload: Uint8Array,
+  cosePayload: COSETaggedItem,
   publicKeyJwt: JsonWebKey
 ): boolean {
   // start again for verifying...
-  const obj = cbor.decode(cosePayload);
+  // const obj = cbor.decode(cosePayload);
   // protected is a typescript keyword
-  const [protected_, , payload_, signature_] = obj.value;
+  const [protected_, , payload_, signature_] = cosePayload.value;
 
   // verified at a earlier point...
   if (!publicKeyJwt.x || !publicKeyJwt.y) {
