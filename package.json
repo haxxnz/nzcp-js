@@ -17,18 +17,12 @@
     "my-cli-tool": "./dist/esbuild/cli.js"
   },
   "scripts": {
-    "cli": "ts-node src/cli.ts",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "test-watch": "jest --watch",
     "clean": "rm -rf dist build package",
-    "ts-node": "ts-node",
     "docs": "typedoc --entryPoints src/main.ts",
-    "build-all": "yarn clean && patch-package && tsc -p tsconfig.json && yarn ts-node build.ts",
-    "esbuild-browser:dev": "esbuild src/browser.ts --bundle --outfile=dist/esbuild/browser.js",
-    "esbuild-browser:watch": "esbuild src/browser.ts --bundle --watch --outfile=dist/esbuild/browser.js",
-    "esbuild-node:dev": "esbuild src/cli.ts --bundle --sourcemap=external --outfile=dist/esbuild/cli.js",
-    "esbuild-node:watch": "esbuild src/cli.ts --bundle --watch --sourcemap=external --outfile=dist/esbuild/cli.js"
+    "build-all": "yarn clean && patch-package && tsc -p tsconfig.json && yarn ts-node build.ts"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.14",
