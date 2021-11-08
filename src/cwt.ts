@@ -183,7 +183,6 @@ export function validateCWTClaims(
     };
   }
 
-  // TODO: not sure if verifying this is actually required by the spec?
   // https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
   if (
     // Section 2.3.2.1
