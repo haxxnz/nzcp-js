@@ -59,7 +59,7 @@ On **unsuccessful** verification of the given pass, the `verifyPass` method retu
 
 ### Advanced Parameters
 
-To allow for flexibility in this library, the `verifyPass` allows for additional parameters as documented below.
+To allow for flexibility in this library, the `verifyPass` method allows for additional parameters as documented below.
 
 #### Customize Trusted Issuers
 
