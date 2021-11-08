@@ -7,7 +7,7 @@ async function main() {
     bundle: true,
     outfile: 'dist/esbuild/browser.js',
     sourcemap: "both",
-    // minify: true,
+    minify: true,
     platform: "browser",
     format: "cjs",
     target: "es6"
@@ -15,12 +15,11 @@ async function main() {
   console.log(resultBrowser)
 
   const resultNode = await build({
-    // plugins: [nodeBuiltIns()],
     entryPoints: ['src/node.ts'],
     bundle: true,
     outfile: 'dist/esbuild/node.js',
     sourcemap: "both",
-    // minify: true,
+    minify: true,
     platform: "node",
     format: "cjs",
     target: "es6"
