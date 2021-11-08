@@ -1,5 +1,3 @@
-
-// TODO: rename to cwtTypes.ts
 export interface CredentialSubject {
   givenName: string;
   familyName: string;
