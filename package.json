@@ -1,6 +1,6 @@
 {
   "name": "@vaxxnz/nzcp",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Javascript implemtation of the NZ covid pass verifier spec",
   "author": "vaxxnz <info@vaxx.nz>",
   "repository": "https://github.com/vaxxnz/nzcp-js",
@@ -13,9 +13,6 @@
   "main": "./dist/esbuild/node.js",
   "types": "./dist/tsc/main.d.ts",
   "browser": "./dist/esbuild/browser.js",
-  "bin": {
-    "my-cli-tool": "./dist/esbuild/cli.js"
-  },
   "scripts": {
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
