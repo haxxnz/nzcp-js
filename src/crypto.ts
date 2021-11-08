@@ -10,8 +10,6 @@ export function validateCOSESignature(
   cosePayload: COSETaggedItem,
   publicKeyJwt: JsonWebKey
 ): boolean {
-  // start again for verifying...
-  // const obj = cbor.decode(cosePayload);
   // protected is a typescript keyword
   const [protected_, , payload_, signature_] = cosePayload.value;
 
