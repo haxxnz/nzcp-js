@@ -41,6 +41,21 @@ On **successful** verification of the given pass, the `verifyNZCovidPass` method
 }
 ```
 
+### Unsuccessful Verification
+
+On **unsuccessful** verification of the given pass, the `verifyNZCovidPass` method returns the following result:
+
+```javascript
+{
+  "success": false,           // Verification Outcome
+  "violates": {               // Error information
+    "message": "Error..",     // Friendly Error Message
+    "section": "0.0",         // Section of official specs under violation
+    "link": "https://..",     // Link to specifications breached
+  },
+  "credentialSubject": null   // No pass holder data due to error
+}
+```
 ## Getting Started
 
 ```bash
