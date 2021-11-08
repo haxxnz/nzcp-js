@@ -13,10 +13,14 @@ import { VerificationResult } from "./generalTypes";
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
+export const verifyPass = async (payload: string): Promise<VerificationResult> => {
+  return verifyPassWithTrustedIssuers(payload, nzcpTrustedIssuers);
+}
+
 // TODO: add tests for every error path
-export const verifyNZCovidPass = async (
+export const verifyPassWithTrustedIssuers = async (
   payload: string,
-  trustedIssuers = nzcpTrustedIssuers
+  trustedIssuers: string[]
 ): Promise<VerificationResult> => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
@@ -112,7 +116,7 @@ export const verifyNZCovidPass = async (
   //       a501781e6469643a7765623a6e7a63702e636f76696431392e6865616c74682e6e7a051a61819a0a041a7450400a627663a46840636f6e7465787482782668747470733a2f2f7777772e77332e6f72672f323031382f63726564656e7469616c732f7631782a68747470733a2f2f6e7a63702e636f76696431392e6865616c74682e6e7a2f636f6e74657874732f76316776657273696f6e65312e302e306474797065827456657269666961626c6543726564656e7469616c6f5075626c6963436f766964506173737163726564656e7469616c5375626a656374a369676976656e4e616d65644a61636b6a66616d696c794e616d656753706172726f7763646f626a313936302d30342d3136075060a4f54d4e304332be33ad78b1eafa4b -- [2], a501781e6469643a7765623a6e7a63702e636f76696431392e6865616c74682e6e7a051a61819a0a041a7450400a627663a46840636f6e7465787482782668747470733a2f2f7777772e77332e6f72672f323031382f63726564656e7469616c732f7631782a68747470733a2f2f6e7a63702e636f76696431392e6865616c74682e6e7a2f636f6e74657874732f76316776657273696f6e65312e302e306474797065827456657269666961626c6543726564656e7469616c6f5075626c6963436f766964506173737163726564656e7469616c5375626a656374a369676976656e4e616d65644a61636b6a66616d696c794e616d656753706172726f7763646f626a313936302d30342d3136075060a4f54d4e304332be33ad78b1eafa4b
   //   58            -- Bytes, length next 1 byte
   //     40          -- Bytes, length: 64
-  const decodedCOSEStructure = cbor.decode(uint8array);
+  const decodedCOSEStructure = cbor.decode(uint8array)
 
   // Decoding the byte string present in the first element of the Decoded COSE structure, as a CBOR structure and rendering it via the expanded form yields the following.
   // Let this result be known as the Decoded CWT protected headers.
@@ -161,14 +165,12 @@ export const verifyNZCovidPass = async (
     };
   }
 
-  const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
+  const rawCWTClaims = cbor.decode(decodedCOSEStructure.value[2]) as Map<
     number | string,
     string | number | Buffer | unknown
   >;
 
-  // TODO: what's decodedCOSEStructure.value[3]?
-
-  const cwtClaims = parseCWTClaims(decodedCWTPayload);
+  const cwtClaims = parseCWTClaims(rawCWTClaims);
 
   const iss = cwtClaims.iss;
 
@@ -183,7 +185,7 @@ export const verifyNZCovidPass = async (
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       credentialSubject: null,
-    }
+    };
   }
 
   // TODO: section number?
@@ -359,10 +361,7 @@ export const verifyNZCovidPass = async (
   // From section 3 "all New Zealand COVID Passes MUST use the COSE_Sign1 structure"
   // this structure is hardcoded in validateCOSESignature
 
-  const result = validateCOSESignature(
-    uint8array,
-    publicKeyJwk
-  );
+  const result = validateCOSESignature(decodedCOSEStructure, publicKeyJwk);
 
   if (!result) {
     // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
@@ -380,13 +379,17 @@ export const verifyNZCovidPass = async (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const cwtClaimsResult = validateCWTClaims(cwtClaims)
+  const cwtClaimsResult = validateCWTClaims(cwtClaims);
   if (!cwtClaimsResult.success) {
     return {
       ...cwtClaimsResult,
       credentialSubject: null,
-    }
+    };
   }
 
-  return { success: result, violates: null, credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject };
+  return {
+    success: result,
+    violates: null,
+    credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject,
+  };
 };

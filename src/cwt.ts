@@ -1,21 +1,21 @@
 import {
+  RawCWTClaims,
   RawCWTHeaders,
   UnvalidatedCWTClaims,
   UnvalidatedCWTHeaders,
   VC,
-} from "./cwtPayloadTypes";
+} from "./cwtTypes";
 import { CWTClaimsResult } from "./generalTypes";
 import { decodeCtiToJti } from "./jtiCti";
 import { currentTimestamp } from "./util";
 
-type RawCWTPayload = Map<number | string, string | number | Buffer | unknown>;
 
 export function parseCWTClaims(
-  rawCWTPayload: RawCWTPayload
+  rawCWTClaims: RawCWTClaims
 ): UnvalidatedCWTClaims {
   // Section 2.1.0.1.5
   // The claim key for cti of 7 MUST be used
-  const ctiClaimRaw = rawCWTPayload.get(7);
+  const ctiClaimRaw = rawCWTClaims.get(7);
   let jti: string | undefined;
   if (ctiClaimRaw && ctiClaimRaw instanceof Buffer) {
     // Section 2.1.1.2
@@ -28,7 +28,7 @@ export function parseCWTClaims(
 
   // Section 2.1.0.2.5
   // The claim key for iss of 1 MUST be used
-  const issClaimRaw = rawCWTPayload.get(1);
+  const issClaimRaw = rawCWTClaims.get(1);
   let iss: string | undefined;
   if (issClaimRaw && typeof issClaimRaw === "string") {
     iss = issClaimRaw.toString();
@@ -36,7 +36,7 @@ export function parseCWTClaims(
 
   // Section 2.1.0.3.5
   // The claim key for nbf of 5 MUST be used
-  const nbfClaimRaw = rawCWTPayload.get(5);
+  const nbfClaimRaw = rawCWTClaims.get(5);
   let nbf: number | undefined;
   if (nbfClaimRaw) {
     if (typeof nbfClaimRaw === "number") {
@@ -46,7 +46,7 @@ export function parseCWTClaims(
 
   // Section 2.1.0.4.5
   // The claim key for exp of 4 MUST be used
-  const expClaimRaw = rawCWTPayload.get(4);
+  const expClaimRaw = rawCWTClaims.get(4);
   let exp: number | undefined;
   if (expClaimRaw) {
     if (typeof expClaimRaw === "number") {
@@ -57,7 +57,7 @@ export function parseCWTClaims(
   // Section 2.1.0.5.3
   // The vc claim is currrently unregistered and therefore MUST be encoded as a Major Type 3 string as defined by [RFC7049].
   // That is automatically handled by CBOR library.
-  const vcClaimRaw = rawCWTPayload.get("vc");
+  const vcClaimRaw = rawCWTClaims.get("vc");
   let vc: VC | undefined;
   if (vcClaimRaw) {
     vc = vcClaimRaw as VC;
@@ -68,7 +68,6 @@ export function parseCWTClaims(
 
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
-// TODO: rename to rawCWTClaims
 export function validateCWTClaims(
   cwtClaims: UnvalidatedCWTClaims
 ): CWTClaimsResult {
@@ -183,7 +182,6 @@ export function validateCWTClaims(
     };
   }
 
-  // TODO: not sure if verifying this is actually required by the spec?
   // https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
   if (
     // Section 2.3.2.1

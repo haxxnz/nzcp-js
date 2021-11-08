@@ -1,5 +1,3 @@
-
-// TODO: rename to cwtTypes.ts
 export interface CredentialSubject {
   givenName: string;
   familyName: string;
@@ -26,6 +24,8 @@ export type UnvalidatedCWTClaims = Partial<CWTClaims>
 
 
 export type RawCWTHeaders = Map<number, Buffer | number>;
+
+export type RawCWTClaims = Map<number | string, string | number | Buffer | unknown>;
 
 interface CWTHeaders {
   kid: string
