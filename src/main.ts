@@ -13,11 +13,15 @@ import { VerificationResult } from "./generalTypes";
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
+export const verifyPass = async (payload: string): Promise<VerificationResult> => {
+  return verifyPassWithTrustedIssuers(payload, nzcpTrustedIssuers);
+}
+
 // TODO: add tests for every error path
 // TODO: confirm version inside verified credential is above the minimum published (1.0.0) https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
-export const verifyPass = async (
+export const verifyPassWithTrustedIssuers = async (
   payload: string,
-  trustedIssuers = nzcpTrustedIssuers
+  trustedIssuers: string[]
 ): Promise<VerificationResult> => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
