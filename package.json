@@ -31,7 +31,8 @@
     "esbuild-browser:watch": "esbuild src/browser.ts --bundle --watch --outfile=dist/esbuild/browser.js",
     "esbuild-node": "esbuild src/cli.ts --bundle --platform=node --minify --sourcemap=external --outfile=dist/esbuild/cli.js",
     "esbuild-node:dev": "esbuild src/cli.ts --bundle --sourcemap=external --outfile=dist/esbuild/cli.js",
-    "esbuild-node:watch": "esbuild src/cli.ts --bundle --watch --sourcemap=external --outfile=dist/esbuild/cli.js"
+    "esbuild-node:watch": "esbuild src/cli.ts --bundle --watch --sourcemap=external --outfile=dist/esbuild/cli.js",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.14",
@@ -40,21 +41,22 @@
     "@types/node-fetch": "^2.5.6",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
+    "cbor": "^6.0.1",
+    "did-resolver": "^3.1.3",
+    "elliptic": "^6.5.4",
     "esbuild": "^0.11.11",
     "esbuild-node-builtins": "^0.1.0",
     "eslint": "^7.22.0",
     "jest": "^26.6.3",
+    "js-sha256": "^0.9.0",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
+    "rfc4648": "^1.5.0",
     "ts-jest": "^26.5.4",
     "ts-node": "^9.1.1",
     "typedoc": "^0.20.35",
     "typescript": "^4.2.3",
-    "cbor": "^6.0.1",
-    "did-resolver": "^3.1.3",
-    "elliptic": "^6.5.4",
-    "js-sha256": "^0.9.0",
-    "rfc4648": "^1.5.0",
     "web-did-resolver": "^2.0.7"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
