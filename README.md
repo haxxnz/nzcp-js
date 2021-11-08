@@ -19,15 +19,15 @@ Peer dependencies on: cbor, did-resolver, elliptic, rfc4648, web-did-resolver
 ## Usage
 
 ```javascript
-import { verifyNZCovidPass } from "__package-name__";
+import { verifyPass } from "__package-name__";
 
 // Verify a New Zealand COVID-19 Pass
-const result = await verifyNZCovidPass("NZCP:/1/2KCEVIQEIVVWK6...");
+const result = await verifyPass("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
 ### Successful Verification
 
-On **successful** verification of the given pass, the `verifyNZCovidPass` method returns the following result:
+On **successful** verification of the given pass, the `verifyPass` method returns the following result:
 
 ```javascript
 {
@@ -43,7 +43,7 @@ On **successful** verification of the given pass, the `verifyNZCovidPass` method
 
 ### Unsuccessful Verification
 
-On **unsuccessful** verification of the given pass, the `verifyNZCovidPass` method returns the following result:
+On **unsuccessful** verification of the given pass, the `verifyPass` method returns the following result:
 
 ```javascript
 {
@@ -59,7 +59,7 @@ On **unsuccessful** verification of the given pass, the `verifyNZCovidPass` meth
 
 ### Advanced Parameters
 
-To allow for flexibility in this library, the `verifyNZCovidPass` allows for additional parameters as documented below.
+To allow for flexibility in this library, the `verifyPass` allows for additional parameters as documented below.
 
 #### Customize Trusted Issuers
 
@@ -68,7 +68,7 @@ To allow for flexibility in this library, the `verifyNZCovidPass` allows for add
 // https://nzcp.covid19.health.nz/
 const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
-const result = await verifyNZCovidPass(
+const result = await verifyPass(
   "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
   nzcpTrustedIssuers            // Array of trusted issuers
 );
