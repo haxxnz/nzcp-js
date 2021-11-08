@@ -184,7 +184,7 @@ export const verifyPass = async (
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
       credentialSubject: null,
-    }
+    };
   }
 
   // TODO: section number?
@@ -360,10 +360,7 @@ export const verifyPass = async (
   // From section 3 "all New Zealand COVID Passes MUST use the COSE_Sign1 structure"
   // this structure is hardcoded in validateCOSESignature
 
-  const result = validateCOSESignature(
-    uint8array,
-    publicKeyJwk
-  );
+  const result = validateCOSESignature(uint8array, publicKeyJwk);
 
   if (!result) {
     // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
@@ -381,13 +378,17 @@ export const verifyPass = async (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const cwtClaimsResult = validateCWTClaims(cwtClaims)
+  const cwtClaimsResult = validateCWTClaims(cwtClaims);
   if (!cwtClaimsResult.success) {
     return {
       ...cwtClaimsResult,
       credentialSubject: null,
-    }
+    };
   }
 
-  return { success: result, violates: null, credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject };
+  return {
+    success: result,
+    violates: null,
+    credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject,
+  };
 };
