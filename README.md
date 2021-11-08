@@ -56,6 +56,24 @@ On **unsuccessful** verification of the given pass, the `verifyNZCovidPass` meth
   "credentialSubject": null   // No pass holder data due to error
 }
 ```
+
+### Advanced Parameters
+
+To allow for flexibility in this library, the `verifyNZCovidPass` allows for additional parameters as documented below.
+
+#### Customize Trusted Issuers
+
+```javascript
+// An array of trusted issuers which work with the NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+
+const result = await verifyNZCovidPass(
+  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
+  nzcpTrustedIssuers            // Array of trusted issuers
+);
+```
+
 ## Getting Started
 
 ```bash
