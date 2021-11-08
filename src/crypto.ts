@@ -1,13 +1,13 @@
 import cbor from "cbor";
 import crypto from "crypto";
 import elliptic from "elliptic";
-import { COSETaggedItem } from "./coseTypes";
+import { DecodedCOSEStructure } from "./coseTypes";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
 
 export function validateCOSESignature(
-  cosePayload: COSETaggedItem,
+  cosePayload: DecodedCOSEStructure,
   publicKeyJwt: JsonWebKey
 ): boolean {
   // protected is a typescript keyword

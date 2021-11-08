@@ -1,8 +1,8 @@
 
-type COSETaggedValue = (Buffer | Record<string, never>)[]
+type DecodedCOSEValue = (Buffer | Record<string, never>)[]
 
-export interface COSETaggedItem {
+export interface DecodedCOSEStructure {
   tag: number,
-  value: COSETaggedValue,
+  value: DecodedCOSEValue,
   err?: Error
 }
