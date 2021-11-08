@@ -6,20 +6,22 @@ async function main() {
     entryPoints: ['src/browser.ts'],
     bundle: true,
     outfile: 'dist/esbuild/browser.js',
-    sourcemap: "external",
-    minify: true,
+    sourcemap: "both",
+    // minify: true,
     platform: "browser",
+    format: "cjs",
+    target: "es6"
   })
   console.log(resultBrowser)
-  const resultNode = await build({
-    plugins: [nodeBuiltIns()],
-    entryPoints: ['src/cli.ts'],
-    bundle: true,
-    outfile: 'dist/esbuild/cli.js',
-    sourcemap: "external",
-    minify: true,
-    platform: "node",
-  })
-  console.log(resultNode)
+  // const resultNode = await build({
+  //   plugins: [nodeBuiltIns()],
+  //   entryPoints: ['src/cli.ts'],
+  //   bundle: true,
+  //   outfile: 'dist/esbuild/cli.js',
+  //   sourcemap: "both",
+  //   // minify: true,
+  //   platform: "node",
+  // })
+  // console.log(resultNode)
 }
 main()
