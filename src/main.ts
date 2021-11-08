@@ -18,7 +18,6 @@ export const verifyPass = async (payload: string): Promise<VerificationResult> =
 }
 
 // TODO: add tests for every error path
-// TODO: confirm version inside verified credential is above the minimum published (1.0.0) https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
 export const verifyPassWithTrustedIssuers = async (
   payload: string,
   trustedIssuers: string[]
