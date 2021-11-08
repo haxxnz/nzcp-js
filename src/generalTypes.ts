@@ -1,4 +1,4 @@
-import { CredentialSubject, CWTClaims } from "./cwtPayloadTypes";
+import { CredentialSubject, CWTClaims } from "./cwtTypes";
 
 export interface Violates {
   message: string;
