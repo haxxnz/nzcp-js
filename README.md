@@ -19,7 +19,7 @@ Peer dependencies on: cbor, did-resolver, elliptic, rfc4648, web-did-resolver
 ## Usage
 
 ```javascript
-import { verifyNZCovidPass } from "./main";
+import { verifyNZCovidPass } from "__package-name__";
 
 // Verify a New Zealand COVID-19 Pass
 const result = await verifyNZCovidPass("NZCP:/1/2KCEVIQEIVVWK6...");
