@@ -165,14 +165,14 @@ export const verifyPassWithTrustedIssuers = async (
     };
   }
 
-  const decodedCWTPayload = cbor.decode(decodedCOSEStructure.value[2]) as Map<
+  const rawCWTClaims = cbor.decode(decodedCOSEStructure.value[2]) as Map<
     number | string,
     string | number | Buffer | unknown
   >;
 
   // TODO: what's decodedCOSEStructure.value[3]?
 
-  const cwtClaims = parseCWTClaims(decodedCWTPayload);
+  const cwtClaims = parseCWTClaims(rawCWTClaims);
 
   const iss = cwtClaims.iss;
 
