@@ -25,18 +25,18 @@ import { verifyNZCovidPass } from "__package-name__";
 const result = await verifyNZCovidPass("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
-## Verification Result
+### Successful Verification
 
 On **successful** verification of the given pass, the `verifyNZCovidPass` method returns the following result:
 
-```json
+```javascript
 {
   "success": true,            // Verification Outcome
   "violates": null,           // Error object if code is invalid
   "credentialSubject": {      // Pass holder's details
     "givenName": "Emily",     // Pass holder's given name
     "familyName": "Example",  // Pass holder's family name
-    "dob": "01/01/1970",      // Pass holder's date of birth
+    "dob": "01/01/1970"       // Pass holder's date of birth
   }
 }
 ```
