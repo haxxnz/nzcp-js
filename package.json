@@ -10,7 +10,7 @@
     "boilerplate",
     "esbuild"
   ],
-  "main": "./dist/esbuild/browser.js",
+  "main": "./dist/esbuild/node.js",
   "types": "./dist/tsc/main.d.ts",
   "browser": "./dist/esbuild/browser.js",
   "bin": {
