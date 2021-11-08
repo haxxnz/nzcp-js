@@ -172,8 +172,6 @@ export const verifyPassWithTrustedIssuers = async (
     string | number | Buffer | unknown
   >;
 
-  // TODO: what's decodedCOSEStructure.value[3]?
-
   const cwtClaims = parseCWTClaims(rawCWTClaims);
 
   const iss = cwtClaims.iss;
