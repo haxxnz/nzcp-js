@@ -1,6 +1,6 @@
 # NZCP.js
 
-A verification library for COVID-19 Vaccine Passes in New Zealand built on top of the [NZ Covid Pass Spec](https://github.com/minhealthnz/nzcovidpass-spec) provided by the Ministry of Health. All contributions welcome 🥳
+A JavaScript implementation of [NZ COVID Pass](https://github.com/minhealthnz/nzcovidpass-spec) verification, New Zealand's proof of COVID-19 vaccination solution, written in TypeScript. All contributions welcome 🥳
 
 > This library can be used for both Client and Server-side implementations.
 
@@ -8,18 +8,16 @@ A verification library for COVID-19 Vaccine Passes in New Zealand built on top o
 
 ```bash
 # NPM
-npm i __package-name__
+npm i @vaxxnz/nzcp
 
 # Yarn
-yarn add __package-name__
+yarn add @vaxxnz/nzcp
 ```
-
-Peer dependencies on: cbor, did-resolver, elliptic, rfc4648, web-did-resolver
 
 ## Usage
 
 ```javascript
-import { verifyPass } from "__package-name__";
+import { verifyPass } from "@vaxxnz/nzcp";
 
 // Verify a New Zealand COVID-19 Pass
 const result = await verifyPass("NZCP:/1/2KCEVIQEIVVWK6...");

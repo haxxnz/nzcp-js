@@ -1,7 +1,7 @@
 {
   "name": "@vaxxnz/nzcp",
   "version": "0.0.1",
-  "description": "Javascript implemtation of the NZ covid pass verifier spec",
+  "description": "A JavaScript implementation of the NZ COVID Pass verification",
   "author": "vaxxnz <info@vaxx.nz>",
   "repository": "https://github.com/vaxxnz/nzcp-js",
   "license": "MIT",
