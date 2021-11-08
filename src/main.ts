@@ -14,7 +14,8 @@ import { VerificationResult } from "./generalTypes";
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
 // TODO: add tests for every error path
-export const verifyNZCovidPass = async (
+// TODO: confirm version inside verified credential is above the minimum published (1.0.0) https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
+export const verifyPass = async (
   payload: string,
   trustedIssuers = nzcpTrustedIssuers
 ): Promise<VerificationResult> => {
