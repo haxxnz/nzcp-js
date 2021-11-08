@@ -65,17 +65,16 @@ Want to help us build a better library? We welcome contributions via [pull reque
 
 ---
 
-### Yarn Commands
+## Contribute
 
 ```bash
 # Install dependencies
 yarn install
-# Now you can run various yarn commands:
-yarn cli
+```
+```bash
+# Use developer scripts
 yarn lint
 yarn test
+yarn test-watch
 yarn build-all
-yarn ts-node <filename>
-yarn esbuild-browser
-...
 ```
