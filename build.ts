@@ -12,7 +12,7 @@ async function main() {
     format: "cjs",
     target: "es6"
   })
-  console.log(resultBrowser)
+  console.log('resultBrowser', resultBrowser)
 
   const resultNode = await build({
     entryPoints: ['src/node.ts'],
@@ -24,6 +24,6 @@ async function main() {
     format: "cjs",
     target: "es6"
   })
-  console.log(resultNode)
+  console.log('resultNode', resultNode)
 }
 main()
