@@ -57,6 +57,26 @@ On **unsuccessful** verification of the given pass, the `verifyPass` method retu
 }
 ```
 
+
+### Advanced Parameters
+
+To allow for flexibility in this library, `verifyPassWithTrustedIssuers` method allows for additional parameters as documented below.
+
+#### Custom Trusted Issuers
+
+```javascript
+import { verifyPassWithTrustedIssuers } from "@vaxxnz/nzcp";
+
+// An array of trusted issuers which work with the NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+
+const result = await verifyPassWithTrustedIssuers(
+  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
+  nzcpTrustedIssuers            // Array of trusted issuers
+);
+```
+
 ## Support
 
 See something that can be improved? [Report an Issue](https://github.com/vaxxnz/nzcp-js/issues) or contact us to [report a security concern](mailto:info@vaxx.nz).
