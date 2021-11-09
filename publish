@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo '@vaxxnz:registry=https://registry.npmjs.org' > .npmrc
+npm publish
+echo '@vaxxnz:registry=https://npm.pkg.github.com' > .npmrc
+npm publish
+
+
+
