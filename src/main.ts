@@ -13,13 +13,13 @@ import { VerificationResult } from "./generalTypes";
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
-export const verifyPassURI = async (payload: string): Promise<VerificationResult> => {
-  return verifyPassURIWithTrustedIssuers(payload, nzcpTrustedIssuers);
+export const verifyPassURI = async (uri: string): Promise<VerificationResult> => {
+  return verifyPassURIWithTrustedIssuers(uri, nzcpTrustedIssuers);
 }
 
 // TODO: add tests for every error path
 export const verifyPassURIWithTrustedIssuers = async (
-  payload: string,
+  uri: string,
   trustedIssuers: string[]
 ): Promise<VerificationResult> => {
   // Section 4: 2D Barcode Encoding
@@ -29,7 +29,7 @@ export const verifyPassURIWithTrustedIssuers = async (
   // Section 4.4
   // Parse the form of QR Code payload
   const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
-  const payloadMatch = payload.match(payloadRegex);
+  const payloadMatch = uri.match(payloadRegex);
   if (!payloadMatch) {
     return {
       success: false,
