@@ -1,4 +1,4 @@
-# NZCP.js
+# NZCP.js &emsp; ![npm](https://img.shields.io/npm/v/@vaxxnz/nzcp) ![NPM](https://img.shields.io/npm/l/@vaxxnz/nzcp) ![npm](https://img.shields.io/npm/dw/@vaxxnz/nzcp)
 
 A JavaScript implementation of [NZ COVID Pass](https://github.com/minhealthnz/nzcovidpass-spec) verification, New Zealand's proof of COVID-19 vaccination solution, written in TypeScript. All contributions welcome 🥳
 
