@@ -1,5 +1,5 @@
 diff --git a/node_modules/cbor/lib/constants.js b/node_modules/cbor/lib/constants.js
-index 932e1c5..9b4502c 100644
+index 932e1c5..4b78a06 100644
 --- a/node_modules/cbor/lib/constants.js
 +++ b/node_modules/cbor/lib/constants.js
 @@ -2,7 +2,7 @@
@@ -7,7 +7,7 @@ index 932e1c5..9b4502c 100644
  // Let's get consistent first, then we can think about feature testing
  // for BigNumber support
 -const {BigNumber} = require('bignumber.js')
-+const {BigNumber} = require('bignumber.js/bignumber.mjs')
++const {BigNumber} = global ? require('bignumber.js') : require('bignumber.js/bignumber.mjs')
  
  exports.BigNumber = BigNumber
  
