@@ -4,7 +4,7 @@ A JavaScript implementation of [NZ COVID Pass](https://github.com/minhealthnz/nz
 
 We also have a [Rust implementation](https://github.com/vaxxnz/nzcp-rust/) available.
 
-> This library can be used for both in browser and node.
+> This library can be used for both in browser and Node.js.
 
 ## Install
 
