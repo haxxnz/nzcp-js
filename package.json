@@ -1,6 +1,6 @@
 {
   "name": "@vaxxnz/nzcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JavaScript implementation of the NZ COVID Pass verification",
   "contributors": ["Will Seagar <w.seagar@gmail.com>", "Ilia Sidorenko <ilia.sidorenko.421@gmail.com>"],
   "repository": "git://github.com/vaxxnz/nzcp-js.git",
