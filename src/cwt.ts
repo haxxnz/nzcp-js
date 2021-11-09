@@ -9,7 +9,6 @@ import { CWTClaimsResult } from "./generalTypes";
 import { decodeCtiToJti } from "./jtiCti";
 import { currentTimestamp } from "./util";
 
-
 export function parseCWTClaims(
   rawCWTClaims: RawCWTClaims
 ): UnvalidatedCWTClaims {
@@ -110,7 +109,8 @@ export function validateCWTClaims(
     return {
       success: false,
       violates: {
-        message: "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
+        message:
+          "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
@@ -126,7 +126,8 @@ export function validateCWTClaims(
     return {
       success: false,
       violates: {
-        message: "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
+        message:
+          "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
@@ -164,7 +165,6 @@ export function validateCWTClaims(
       },
     };
   }
-
 
   // Section 2.1.0.5.3
   // The vc claim is currrently unregistered and therefore MUST be encoded as a Major Type 3 string as defined by [RFC7049].
@@ -292,7 +292,13 @@ export function validateCWTClaims(
 
   return {
     success: true,
-    cwtClaims: { jti: cwtClaims.jti, iss: cwtClaims.iss, nbf: cwtClaims.nbf, exp: cwtClaims.exp, vc: cwtClaims.vc },
+    cwtClaims: {
+      jti: cwtClaims.jti,
+      iss: cwtClaims.iss,
+      nbf: cwtClaims.nbf,
+      exp: cwtClaims.exp,
+      vc: cwtClaims.vc,
+    },
     violates: null,
   };
 }
