@@ -19,15 +19,15 @@ yarn add @vaxxnz/nzcp
 ## Usage
 
 ```javascript
-import { verifyPass } from "@vaxxnz/nzcp";
+import { verifyPassURI } from "@vaxxnz/nzcp";
 
 // Verify a New Zealand COVID-19 Pass
-const result = await verifyPass("NZCP:/1/2KCEVIQEIVVWK6...");
+const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
 ### Successful Verification
 
-On **successful** verification of the given pass, the `verifyPass` method returns the following result:
+On **successful** verification of the given pass, the `verifyPassURI` method returns the following result:
 
 ```javascript
 {
@@ -43,7 +43,7 @@ On **successful** verification of the given pass, the `verifyPass` method return
 
 ### Unsuccessful Verification
 
-On **unsuccessful** verification of the given pass, the `verifyPass` method returns the following result:
+On **unsuccessful** verification of the given pass, the `verifyPassURI` method returns the following result:
 
 ```javascript
 {
@@ -55,6 +55,26 @@ On **unsuccessful** verification of the given pass, the `verifyPass` method retu
   },
   "credentialSubject": null   // No pass holder data due to error
 }
+```
+
+
+### Advanced Parameters
+
+To allow for flexibility in this library, `verifyPassURIWithTrustedIssuers` method allows for additional parameters as documented below.
+
+#### Custom Trusted Issuers
+
+```javascript
+import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
+
+// An array of trusted issuers which work with the NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
+const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+
+const result = await verifyPassURIWithTrustedIssuers(
+  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
+  nzcpTrustedIssuers            // Array of trusted issuers
+);
 ```
 
 ## Support

@@ -13,12 +13,12 @@ import { VerificationResult } from "./generalTypes";
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
-export const verifyPass = async (payload: string): Promise<VerificationResult> => {
-  return verifyPassWithTrustedIssuers(payload, nzcpTrustedIssuers);
+export const verifyPassURI = async (payload: string): Promise<VerificationResult> => {
+  return verifyPassURIWithTrustedIssuers(payload, nzcpTrustedIssuers);
 }
 
 // TODO: add tests for every error path
-export const verifyPassWithTrustedIssuers = async (
+export const verifyPassURIWithTrustedIssuers = async (
   payload: string,
   trustedIssuers: string[]
 ): Promise<VerificationResult> => {
