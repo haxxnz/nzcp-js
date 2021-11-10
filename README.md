@@ -22,6 +22,10 @@ npm i @vaxxnz/nzcp
 yarn add @vaxxnz/nzcp
 ```
 
+## Demo
+- [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
+- [React.js demo on CodeSandbox](https://codesandbox.io/s/nzcpjs-demo-4vjgb?file=/src/App.tsx:0-23)
+
 ## Usage
 
 ```javascript
