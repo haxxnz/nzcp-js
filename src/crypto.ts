@@ -32,7 +32,7 @@ export function validateCOSESignature(
   //     payload : bstr
   // ]
   const SigStructure = ["Signature1", Buffer.from(protected_ as Buffer), Buffer.alloc(0), Buffer.from(payload_ as Buffer)];
-  const ToBeSigned = cbor.encodeCanonical(SigStructure);
+  const ToBeSigned = cbor.encode(SigStructure);
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
     r: signature_.slice(0, signature_.length / 2),
