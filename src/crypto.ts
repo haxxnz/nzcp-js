@@ -22,7 +22,7 @@ export function validateCOSESignature(
   const yBuf = Buffer.from(publicKeyJwt.y, "base64");
 
   // 1) '04' + hex string of x + hex string of y
-  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}}`;
+  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}`;
   const key = ec.keyFromPublic(publicKeyHex, "hex");
   //   Sig_structure = [
   //     context : "Signature" / "Signature1" / "CounterSignature",
