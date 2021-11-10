@@ -16,10 +16,10 @@ export function parseCWTClaims(
   // The claim key for cti of 7 MUST be used
   const ctiClaimRaw = rawCWTClaims.get(7);
   let jti: string | undefined;
-  if (ctiClaimRaw && ctiClaimRaw instanceof Buffer) {
+  if (ctiClaimRaw) {
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
-    const jtiResult = decodeCtiToJti(ctiClaimRaw);
+    const jtiResult = decodeCtiToJti(ctiClaimRaw as Buffer);
     if (jtiResult.success) {
       jti = jtiResult.jti;
     }
