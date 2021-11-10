@@ -32,19 +32,12 @@ export function validateCOSESignature(
   //     payload : bstr
   // ]
   const SigStructure = ["Signature1", Buffer.from(protected_ as Buffer), Buffer.alloc(0), Buffer.from(payload_ as Buffer)];
-  console.log('protected_',protected_.length)
-  console.log('payload_',payload_.length)
   const ToBeSigned = cbor.encodeCanonical(SigStructure);
-  console.log('ToBeSigned',ToBeSigned.length);
   const messageHash = Buffer.from(sha256.digest(Buffer.from(ToBeSigned)));
   const signature = {
     r: signature_.slice(0, signature_.length / 2),
     s: signature_.slice(signature_.length / 2),
   };
-
-  console.log("signature.r.toString(hex)",signature.r.toString("hex"))
-  console.log("signature.s.toString(hex)",signature.s.toString("hex"))
-  console.log("messageHash.toString(hex)",messageHash.toString("hex"))
   const result = key.verify(messageHash, signature);
   return result;
 }
