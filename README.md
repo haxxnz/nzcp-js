@@ -1,4 +1,10 @@
-# NZCP.js &emsp; ![npm](https://img.shields.io/npm/v/@vaxxnz/nzcp) ![NPM](https://img.shields.io/npm/l/@vaxxnz/nzcp) ![npm](https://img.shields.io/npm/dw/@vaxxnz/nzcp)
+# NZCP.js &emsp; [![latest version badge]][npm] [![license badge]][license] [![downloads badge]][npm]
+
+[latest version badge]: https://img.shields.io/npm/v/@vaxxnz/nzcp
+[license badge]: https://img.shields.io/npm/l/@vaxxnz/nzcp
+[downloads badge]: https://img.shields.io/npm/dw/@vaxxnz/nzcp
+[npm]: https://www.npmjs.com/package/@vaxxnz/nzcp
+[license]: https://github.com/vaxxnz/nzcp-js/blob/main/LICENSE
 
 A JavaScript implementation of [NZ COVID Pass](https://github.com/minhealthnz/nzcovidpass-spec) verification, New Zealand's proof of COVID-19 vaccination solution, written in TypeScript. All contributions welcome 🥳
 
@@ -15,6 +21,10 @@ npm i @vaxxnz/nzcp
 # Yarn
 yarn add @vaxxnz/nzcp
 ```
+
+## Demo
+- [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
+- [React.js demo on CodeSandbox](https://codesandbox.io/s/nzcpjs-demo-4vjgb?file=/src/App.tsx:0-23)
 
 ## Usage
 
@@ -84,6 +94,9 @@ See something that can be improved? [Report an Issue](https://github.com/vaxxnz/
 Want to help us build a better library? We welcome contributions via [pull requests](https://github.com/vaxxnz/nzcp-js/pulls) and welcome you to our wider [Vaxx.nz](https://vaxx.nz) community on Discord: [Join our Discord community](https://discord.gg/sJWmNy7wnM).
 
 ---
+
+## NPM
+[@vaxxnz/nzcp](https://www.npmjs.com/package/@vaxxnz/nzcp)
 
 ## Contribute
 
