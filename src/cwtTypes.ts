@@ -5,7 +5,7 @@ export interface CredentialSubject {
 }
 
 export interface VC {
-  '@context': string[];
+  "@context": string[];
   version: string;
   type: string[];
   credentialSubject: CredentialSubject;
@@ -19,17 +19,18 @@ export interface CWTClaims {
   jti: string;
 }
 
-export type UnvalidatedCWTClaims = Partial<CWTClaims>
-
-
+export type UnvalidatedCWTClaims = Partial<CWTClaims>;
 
 export type RawCWTHeaders = Map<number, Buffer | number>;
 
-export type RawCWTClaims = Map<number | string, string | number | Buffer | unknown>;
+export type RawCWTClaims = Map<
+  number | string,
+  string | number | Buffer | unknown
+>;
 
 interface CWTHeaders {
-  kid: string
-  alg: string
+  kid: string;
+  alg: string;
 }
 
-export type UnvalidatedCWTHeaders = Partial<CWTHeaders>
+export type UnvalidatedCWTHeaders = Partial<CWTHeaders>;

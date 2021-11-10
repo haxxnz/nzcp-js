@@ -11,7 +11,12 @@ coverage
 .gitlab-ci.yml
 
 package-lock.json
+build-and-publish
+build.ts
+jest.config.js
 /*.tgz
 /tmp*
 /mnt/
 /package/
+/src/
+/patches/

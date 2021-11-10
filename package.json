@@ -19,7 +19,8 @@
     "test-watch": "jest --watch",
     "clean": "rm -rf dist build package",
     "docs": "typedoc --entryPoints src/main.ts",
-    "build-all": "yarn clean && patch-package && tsc -p tsconfig.json && yarn ts-node build.ts"
+    "build-all": "yarn clean && patch-package && tsc --emitDeclarationOnly -p tsconfig.json && yarn ts-node build.ts",
+    "build-and-publish": "./build-and-publish"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.14",
