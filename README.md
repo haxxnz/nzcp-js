@@ -85,6 +85,9 @@ Want to help us build a better library? We welcome contributions via [pull reque
 
 ---
 
+## NPM
+[@vaxxnz/nzcp](https://www.npmjs.com/package/@vaxxnz/nzcp)
+
 ## Contribute
 
 ```bash
