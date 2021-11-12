@@ -31,7 +31,11 @@ export function validateCOSESignature(
   //     external_aad : bstr,
   //     payload : bstr
   // ]
-  const SigStructure = ["Signature1", Buffer.from(protected_ as Buffer), Buffer.alloc(0), Buffer.from(payload_ as Buffer)];
+  const bufferProtected_ = Buffer.from(protected_ as Buffer)
+  const buffer0 = Buffer.alloc(0)
+  const bufferPayload_ = Buffer.from(payload_ as Buffer)
+  const SigStructure = ["Signature1", bufferProtected_, buffer0, bufferPayload_];
+
   const ToBeSigned = cbor.encode(SigStructure);
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
