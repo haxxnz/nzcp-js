@@ -1,7 +1,7 @@
-import cbor from "cbor";
 import { sha256 } from "js-sha256";
 import elliptic from "elliptic";
 import { DecodedCOSEStructure } from "./coseTypes";
+import { encodeCBOR } from "./cbor";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
@@ -22,7 +22,7 @@ export function validateCOSESignature(
   const yBuf = Buffer.from(publicKeyJwt.y, "base64");
 
   // 1) '04' + hex string of x + hex string of y
-  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}}`;
+  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}`;
   const key = ec.keyFromPublic(publicKeyHex, "hex");
   //   Sig_structure = [
   //     context : "Signature" / "Signature1" / "CounterSignature",
@@ -31,8 +31,12 @@ export function validateCOSESignature(
   //     external_aad : bstr,
   //     payload : bstr
   // ]
-  const SigStructure = ["Signature1", Buffer.from(protected_ as Buffer), Buffer.alloc(0), Buffer.from(payload_ as Buffer)];
-  const ToBeSigned = cbor.encode(SigStructure);
+  const bufferProtected_ = Buffer.from(protected_ as Buffer)
+  const buffer0 = Buffer.alloc(0)
+  const bufferPayload_ = Buffer.from(payload_ as Buffer)
+  const SigStructure = ["Signature1", bufferProtected_, buffer0, bufferPayload_];
+
+  const ToBeSigned = encodeCBOR(SigStructure);
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
     r: signature_.slice(0, signature_.length / 2),

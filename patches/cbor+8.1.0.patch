@@ -1,0 +1,14 @@
+diff --git a/node_modules/cbor/lib/encoder.js b/node_modules/cbor/lib/encoder.js
+index 6327959..288c692 100644
+--- a/node_modules/cbor/lib/encoder.js
++++ b/node_modules/cbor/lib/encoder.js
+@@ -509,6 +509,9 @@ Call removeLoopDetectors before resuming.`)
+       if (typeof f === 'function') {
+         return f.call(obj, this)
+       }
++      if (Buffer.isBuffer(obj)) {
++        return this.semanticTypes[Buffer.name].call(obj, this, obj)
++      }
+       const converter = this.semanticTypes[obj.constructor.name]
+       if (converter) {
+         return converter.call(obj, this, obj)
