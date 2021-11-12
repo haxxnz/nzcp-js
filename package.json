@@ -7,8 +7,17 @@
   "license": "MIT",
   "keywords": [
     "typescript",
-    "boilerplate",
-    "esbuild"
+    "esbuild",
+    "covid",
+    "new zealand",
+    "nz",
+    "covid pass",
+    "vaccine pass",
+    "vaccine certificate",
+    "sdk",
+    "nzcp",
+    "verifier",
+    "validator"
   ],
   "main": "./dist/esbuild/node.js",
   "types": "./dist/tsc/main.d.ts",
