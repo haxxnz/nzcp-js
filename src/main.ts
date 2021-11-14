@@ -3,8 +3,9 @@ import did from "./did";
 import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
-import { VerificationResult } from "./generalTypes";
+import { VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
+import { CredentialSubject } from "./cwtTypes";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
@@ -12,6 +13,8 @@ import { decodeCBOR } from "./cbor";
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
+
+export { VerificationResult, CredentialSubject, Violates }
 
 export const verifyPassURI = async (
   uri: string
