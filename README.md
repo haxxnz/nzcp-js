@@ -23,6 +23,7 @@ yarn add @vaxxnz/nzcp
 ```
 
 ## Demo
+
 - [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
 - [React.js demo on CodeSandbox](https://codesandbox.io/s/nzcpjs-demo-4vjgb)
 
@@ -67,7 +68,6 @@ On **unsuccessful** verification of the given pass, the `verifyPassURI` method r
 }
 ```
 
-
 ### Advanced Parameters
 
 To allow for flexibility in this library, `verifyPassURIWithTrustedIssuers` method allows for additional parameters as documented below.
@@ -82,8 +82,8 @@ import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
 const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
 const result = await verifyPassURIWithTrustedIssuers(
-  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
-  nzcpTrustedIssuers            // Array of trusted issuers
+  "NZCP:/1/2KCEVIQEIVVWK6...", // COVID-19 Pass to be verified
+  nzcpTrustedIssuers // Array of trusted issuers
 );
 ```
 
@@ -96,6 +96,7 @@ Want to help us build a better library? We welcome contributions via [pull reque
 ---
 
 ## NPM
+
 [@vaxxnz/nzcp](https://www.npmjs.com/package/@vaxxnz/nzcp)
 
 ## Contribute
@@ -104,6 +105,7 @@ Want to help us build a better library? We welcome contributions via [pull reque
 # Install dependencies
 yarn install
 ```
+
 ```bash
 # Use developer scripts
 yarn lint
