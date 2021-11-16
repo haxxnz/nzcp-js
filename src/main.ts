@@ -16,6 +16,13 @@ const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
 export { VerificationResult, CredentialSubject, Violates };
 
+/**
+ * Verifies a New Zealand COVID-19 Vaccination Passport using NZCP trusted issuers.
+ * @param {string} uri the COVID-19 Passport URI to be verified
+ * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
+ * @example <caption>Implementation of basic verification:</caption>
+ * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...");
+ */
 export const verifyPassURI = async (
   uri: string
 ): Promise<VerificationResult> => {
