@@ -30,6 +30,15 @@ export const verifyPassURI = async (
 };
 
 // TODO: add tests for every error path
+/**
+ * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
+ * @param {string} uri the COVID-19 Passport URI to be verified
+ * @param {string[]} trustedIssuers a string array of trusted issuers to be used in the verification of a COVID-19 Vaccination Passport
+ * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
+ * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
+ * @example <caption>Implementation of custom trusted issuers:</caption>
+ * const result = await verifyPassURIWithTrustedIssuers("NZCP:/1/2KCEVIQEIVV...", ["did:web:nzcp.covid19.health.nz", "..."]);
+ */
 export const verifyPassURIWithTrustedIssuers = async (
   uri: string,
   trustedIssuers: string[]
