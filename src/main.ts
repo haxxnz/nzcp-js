@@ -233,47 +233,11 @@ const getCWTClaims = (
   return { success: true, data: cwtClaims };
 };
 
-/**
- * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
- * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {VerifyPassURIInternalOptions} options options for the verification
- * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
- * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
- * @example <caption>Implementation of custom trusted issuers:</caption>
- * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
- */
-export const verifyPassURIInternal = (
-  uri: string,
-  options: VerifyPassURIInternalOptions
-): VerificationResult => {
-
-  const decodedCOSEStructureResult = getCOSEStructure(uri);
-  if (!decodedCOSEStructureResult.success) {
-    return {
-      ...decodedCOSEStructureResult,
-      credentialSubject: null,
-    };
-  }
-  const decodedCOSEStructure = decodedCOSEStructureResult.data as any;
-
-  const cwtHeadersResult = getCWTHeaders(decodedCOSEStructure);
-  if (!cwtHeadersResult.success) {
-    return {
-      ...cwtHeadersResult,
-      credentialSubject: null,
-    };
-  }
-  const cwtHeaders = cwtHeadersResult.data ;
-
-  const cwtClaimsResult1 = getCWTClaims(decodedCOSEStructure);
-  if (!cwtClaimsResult1.success) {
-    return {
-      ...cwtClaimsResult1,
-      credentialSubject: null,
-    };
-  }
-
-  const iss = cwtClaimsResult1.data.iss;
+const getIss = (
+  cwtClaims: Partial<CWTClaims>,
+  trustedIssuers: string[]
+): GenericResult<string> => {
+  const iss = cwtClaims.iss;
 
   // Section 2.1.0.2.1
   // Issuer claim MUST be present
@@ -285,17 +249,15 @@ export const verifyPassURIInternal = (
         section: "2.1.0.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      credentialSubject: null,
     };
   }
 
   // TODO: section number?
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  if (!options.trustedIssuers.includes(iss)) {
+  if (!trustedIssuers.includes(iss)) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "`iss` value reported in the pass does not match one listed in the trusted issuers",
@@ -304,30 +266,16 @@ export const verifyPassURIInternal = (
       },
     };
   }
+  return { success: true, data: iss };
+};
 
-  // {
-  //   "@context": "https://w3.org/ns/did/v1",
-  //   "id": "did:web:nzcp.covid19.health.nz",
-  //   "verificationMethod": [
-  //     {
-  //       "id": "did:web:nzcp.covid19.health.nz#key-1",
-  //       "controller": "did:web:nzcp.covid19.health.nz",
-  //       "type": "JsonWebKey2020",
-  //       "publicKeyJwk": {
-  //         "kty": "EC",
-  //         "crv": "P-256",
-  //         "x": "zRR-XGsCp12Vvbgui4DD6O6cqmhfPuXMhi1OxPl8760",
-  //         "y": "Iv5SU6FuW-TRYh5_GOrJlcV_gpF_GpFQhCOD8LSk3T0"
-  //       }
-  //     }
-  //   ],
-  //   "assertionMethod": [
-  //     "did:web:nzcp.covid19.health.nz#key-1"
-  //   ]
-  // }
-
-  const didDocument = options.didDocuments.find((d) => d.id === iss) ?? null;
-
+const getCredentialSubject = (
+  iss: string,
+  cwtHeaders: Partial<CWTHeaders>,
+  cwtClaims: Partial<CWTClaims>,
+  didDocument: DIDDocument | null,
+  decodedCOSEStructure: any
+): GenericResult<CredentialSubject> => {
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
   // 5.1.1
@@ -335,7 +283,6 @@ export const verifyPassURIInternal = (
   if (!didDocument?.assertionMethod) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
@@ -351,7 +298,6 @@ export const verifyPassURIInternal = (
   if (!assertionMethod.includes(absoluteKeyReference)) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
@@ -364,7 +310,6 @@ export const verifyPassURIInternal = (
   if (!didDocument.verificationMethod) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "No matching verificationMethod method for the assertionMethod",
@@ -379,7 +324,6 @@ export const verifyPassURIInternal = (
   if (!verificationMethod) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message: "No matching verificationMethod for the assertionMethod",
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
@@ -397,7 +341,6 @@ export const verifyPassURIInternal = (
   if (!publicKeyJwk || !publicKeyJwk?.x || !publicKeyJwk?.y) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
@@ -412,7 +355,6 @@ export const verifyPassURIInternal = (
   if (verificationMethod?.type !== "JsonWebKey2020") {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
@@ -431,7 +373,6 @@ export const verifyPassURIInternal = (
   if (publicKeyJwk.crv !== "P-256" || publicKeyJwk.kty !== "EC") {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
@@ -453,7 +394,6 @@ export const verifyPassURIInternal = (
     // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "Retrieved public key does not validate `COSE_Sign1` structure",
@@ -465,7 +405,50 @@ export const verifyPassURIInternal = (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const cwtClaimsResult = validateCWTClaims(cwtClaimsResult1.data);
+  const cwtClaimsResult = validateCWTClaims(cwtClaims);
+  if (!cwtClaimsResult.success) {
+    return {
+      ...cwtClaimsResult,
+    };
+  }
+  return {
+    success: true,
+    data: cwtClaimsResult.cwtClaims.vc.credentialSubject,
+  };
+};
+
+/**
+ * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
+ * @param {string} uri the COVID-19 Passport URI to be verified
+ * @param {VerifyPassURIInternalOptions} options options for the verification
+ * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
+ * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
+ * @example <caption>Implementation of custom trusted issuers:</caption>
+ * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
+ */
+export const verifyPassURIInternal = (
+  uri: string,
+  options: VerifyPassURIInternalOptions
+): VerificationResult => {
+  const decodedCOSEStructureResult = getCOSEStructure(uri);
+  if (!decodedCOSEStructureResult.success) {
+    return {
+      ...decodedCOSEStructureResult,
+      credentialSubject: null,
+    };
+  }
+  const decodedCOSEStructure = decodedCOSEStructureResult.data as any;
+
+  const cwtHeadersResult = getCWTHeaders(decodedCOSEStructure);
+  if (!cwtHeadersResult.success) {
+    return {
+      ...cwtHeadersResult,
+      credentialSubject: null,
+    };
+  }
+  const cwtHeaders = cwtHeadersResult.data;
+
+  const cwtClaimsResult = getCWTClaims(decodedCOSEStructure);
   if (!cwtClaimsResult.success) {
     return {
       ...cwtClaimsResult,
@@ -473,9 +456,35 @@ export const verifyPassURIInternal = (
     };
   }
 
+  const issResult = getIss(cwtClaimsResult.data, options.trustedIssuers);
+  if (!issResult.success) {
+    return {
+      ...issResult,
+      credentialSubject: null,
+    };
+  }
+  const iss = issResult.data;
+
+  const didDocument = options.didDocuments.find((d) => d.id === iss) ?? null;
+
+  const credentialSubjectResult = getCredentialSubject(
+    iss,
+    cwtHeaders,
+    cwtClaimsResult.data,
+    didDocument,
+    decodedCOSEStructure
+  );
+  if (!credentialSubjectResult.success) {
+    return {
+      ...credentialSubjectResult,
+      credentialSubject: null,
+    };
+  }
+  const credentialSubject = credentialSubjectResult?.data;
+
   return {
-    success: result,
+    success: true,
     violates: null,
-    credentialSubject: cwtClaimsResult.cwtClaims.vc.credentialSubject,
+    credentialSubject: credentialSubject,
   };
 };
