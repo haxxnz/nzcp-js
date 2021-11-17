@@ -101,3 +101,14 @@ test("Non base-32 string in the payload Pass is unsuccessful", async () => {
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("4.7");
 });
+
+// Custom Test: not a string
+test("Non string uri unsuccesful", async () => {
+  const result = await verifyPassURIWithTrustedIssuers(
+    undefined as unknown as string,
+    nzcpExamplesTrustedIssuers
+  );
+  expect(result.success).toBe(false);
+  expect(result.violates?.section).toBe("4.3");
+});
+

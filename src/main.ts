@@ -47,6 +47,19 @@ export const verifyPassURIWithTrustedIssuers = async (
   // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding
 
+  // Section 4.3
+  // QR code payload MUST be a string
+  if (typeof uri !== "string") {
+    return {
+      success: false,
+      credentialSubject: null,
+      violates: {
+        message: "The payload of the QR Code MUST be a string",
+        section: "4.3",
+        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      },
+    };
+  }
   // Section 4.4
   // Parse the form of QR Code payload
   const payloadRegex = /(NZCP:\/)(\d+)\/([A-Za-z2-7=]+)/;
