@@ -1,5 +1,5 @@
 import { base32 } from "rfc4648";
-// import did from "./did";
+import did from "./did";
 import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
@@ -54,10 +54,6 @@ export const verifyPassURIOffline = (
   });
 };
 
-type VerifyPassURIOfflineInternalOptions = {
-  trustedIssuers: string[];
-  didDocuments: DIDDocument[];
-};
 
 // TODO: add tests for every error path
 
@@ -397,7 +393,12 @@ const getCredentialSubject = (
   return cwtClaimsResult.cwtClaims.vc.credentialSubject;
 };
 
-export const verifyPassURIOfflineInternal = (
+type VerifyPassURIOfflineInternalOptions = {
+  trustedIssuers: string[];
+  didDocuments: DIDDocument[];
+};
+
+const verifyPassURIOfflineInternal = (
   uri: string,
   options: VerifyPassURIOfflineInternalOptions
 ): VerificationResult => {
@@ -412,6 +413,58 @@ export const verifyPassURIOfflineInternal = (
       cwtHeaders,
       cwtClaims,
       didDocument,
+      decodedCOSEStructure
+    );
+    return {
+      success: true,
+      violates: null,
+      credentialSubject,
+    };
+  } catch (err) {
+    const error = err as Error;
+    return {
+      success: false,
+      violates:
+        "violates" in error
+          ? (error as Violation).violates
+          : { message: err.message, section: "unknown", link: "" },
+      credentialSubject: null,
+    };
+  }
+};
+
+type VerifyPassURIInternalOptions = {
+  trustedIssuers: string[];
+}
+
+const verifyPassURIInternal = async (
+  uri: string,
+  options: VerifyPassURIInternalOptions
+): Promise<VerificationResult> => {
+  try {
+    const decodedCOSEStructure = getCOSEStructure(uri);
+    const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
+    const cwtClaims = getCWTClaims(decodedCOSEStructure);
+    const iss = getIss(cwtClaims, options.trustedIssuers);
+
+    const didResult = await did.resolve(iss);
+    if (didResult.didResolutionMetadata.error) {
+      // an error came back from the offical DID reference implementation
+      // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
+      throw new Violation({
+        violates: {
+          message: didResult.didResolutionMetadata.error,
+          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+          section: "DID-CORE.1",
+        },
+      });
+    }
+
+    const credentialSubject = getCredentialSubject(
+      iss,
+      cwtHeaders,
+      cwtClaims,
+      didResult.didDocument,
       decodedCOSEStructure
     );
     return {
