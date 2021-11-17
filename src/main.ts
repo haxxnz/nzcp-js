@@ -6,6 +6,7 @@ import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
 import { VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
 import { CredentialSubject } from "./cwtTypes";
+import { DIDDocument } from "did-resolver";
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
@@ -19,14 +20,16 @@ export { VerificationResult, CredentialSubject, Violates };
 /**
  * Verifies a New Zealand COVID-19 Vaccination Passport using NZCP trusted issuers.
  * @param {string} uri the COVID-19 Passport URI to be verified
+ * @param {DIDDocument[]} didDocuments Array of DID documents accessible offline
  * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
  * @example <caption>Implementation of basic verification:</caption>
  * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...");
  */
 export const verifyPassURI = async (
-  uri: string
+  uri: string,
+  didDocuments?: DIDDocument[]
 ): Promise<VerificationResult> => {
-  return verifyPassURIWithTrustedIssuers(uri, nzcpTrustedIssuers);
+  return verifyPassURIWithTrustedIssuers(uri, nzcpTrustedIssuers, didDocuments);
 };
 
 // TODO: add tests for every error path
@@ -34,6 +37,7 @@ export const verifyPassURI = async (
  * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
  * @param {string} uri the COVID-19 Passport URI to be verified
  * @param {string[]} trustedIssuers a string array of trusted issuers to be used in the verification of a COVID-19 Vaccination Passport
+ * @param {DIDDocument[]} didDocuments Array of DID documents accessible offline
  * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
  * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
  * @example <caption>Implementation of custom trusted issuers:</caption>
@@ -41,7 +45,8 @@ export const verifyPassURI = async (
  */
 export const verifyPassURIWithTrustedIssuers = async (
   uri: string,
-  trustedIssuers: string[]
+  trustedIssuers: string[],
+  didDocuments?: DIDDocument[]
 ): Promise<VerificationResult> => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
@@ -258,25 +263,31 @@ export const verifyPassURIWithTrustedIssuers = async (
   //     "did:web:nzcp.covid19.health.nz#key-1"
   //   ]
   // }
-  const didResult = await did.resolve(iss);
 
-  if (didResult.didResolutionMetadata.error) {
-    // an error came back from the offical DID reference implementation
-    // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
-    return {
-      success: false,
-      credentialSubject: null,
-      violates: {
-        message: didResult.didResolutionMetadata.error,
-        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-        section: "DID-CORE.1",
-      },
-    };
+  let didDocument: DIDDocument | null;
+  if (didDocuments) {
+    didDocument = didDocuments.find((d) => d.id === iss) ?? null;
+  } else {
+    const didResult = await did.resolve(iss);
+
+    if (didResult.didResolutionMetadata.error) {
+      // an error came back from the offical DID reference implementation
+      // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
+      return {
+        success: false,
+        credentialSubject: null,
+        violates: {
+          message: didResult.didResolutionMetadata.error,
+          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+          section: "DID-CORE.1",
+        },
+      };
+    }
+
+    didDocument = didResult.didDocument;
   }
 
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
-
-  const didDocument = didResult.didDocument;
 
   // 5.1.1
   // The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.
