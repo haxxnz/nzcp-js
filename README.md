@@ -77,11 +77,11 @@ To verify [example COVID Passes from the spec](https://nzcp.covid19.health.nz/#v
 import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
 
 // An array of trusted issuers for the example COVID Passes
-const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
 const result = await verifyPassURIWithTrustedIssuers(
-  "NZCP:/1/2KCEVIQEIVVWK6...", // COVID-19 Pass to be verified
-  nzcpTrustedIssuers // Array of trusted issuers
+  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
+  exampleTrustedIssuers         // Array of trusted issuers
 );
 ```
 

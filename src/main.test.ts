@@ -5,7 +5,7 @@ dotenv.config();
 
 // This is the list of trusted issuers which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
-const nzcpExamplesTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
 // DID document which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/.well-known/did.json
@@ -58,7 +58,7 @@ const validPass =
 test("Valid pass is successful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     validPass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(true);
   expect(result.credentialSubject?.givenName).toBe("Jack");
@@ -72,7 +72,7 @@ const badPublicKeyPass =
 test("Bad Public Key pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     badPublicKeyPass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("3");
@@ -84,7 +84,7 @@ const publicKeyNotFoundPass =
 test("Public Key Not Found pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     publicKeyNotFoundPass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("5.1.1");
@@ -96,7 +96,7 @@ const modifiedSignaturePass =
 test("Modified Signature pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     modifiedSignaturePass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("3");
@@ -108,7 +108,7 @@ const modifiedPayloadPass =
 test("Modified Payload pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     modifiedPayloadPass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("3");
@@ -120,7 +120,7 @@ const expiredPass =
 test("Expired Pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     expiredPass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.4.3");
@@ -132,7 +132,7 @@ const notActivePass =
 test("Not Active pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     notActivePass,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.3.3");
@@ -144,7 +144,7 @@ const notBase32 =
 test("Non base-32 string in the payload Pass is unsuccessful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     notBase32,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("4.7");
@@ -154,7 +154,7 @@ test("Non base-32 string in the payload Pass is unsuccessful", async () => {
 test("Non string uri unsuccesful", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     undefined as unknown as string,
-    nzcpExamplesTrustedIssuers
+    exampleTrustedIssuers
   );
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("4.3");
@@ -164,7 +164,7 @@ test("Non string uri unsuccesful", async () => {
 test("Valid pass is successful with BYO DID document", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     validPass,
-    nzcpExamplesTrustedIssuers,
+    exampleTrustedIssuers,
     [nzcpExamplesDidDocument]
   );
   expect(result.success).toBe(true);
