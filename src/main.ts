@@ -54,6 +54,25 @@ export const verifyPassURIOffline = (
   });
 };
 
+type VerifyPassURIOptions = {
+  trustedIssuer: string | string[];
+}
+
+export const verifyPassURI = async (
+  uri: string,
+  options?: VerifyPassURIOptions
+): Promise<VerificationResult> => {
+  const trustedIssuers =
+    options && options.trustedIssuer
+      ? Array.isArray(options.trustedIssuer)
+        ? options.trustedIssuer
+        : [options.trustedIssuer]
+      : [liveTrustedIssuer];
+  return verifyPassURIInternal(uri, {
+    trustedIssuers,
+  });
+};
+
 
 // TODO: add tests for every error path
 
