@@ -48,13 +48,13 @@ export const verifyPassURIOffline = (
         ? options.didDocument
         : [options.didDocument]
       : [DID_DOCUMENTS.MOH_LIVE];
-  return verifyPassURIInternal(uri, {
+  return verifyPassURIOfflineInternal(uri, {
     trustedIssuers,
     didDocuments,
   });
 };
 
-type VerifyPassURIInternalOptions = {
+type VerifyPassURIOfflineInternalOptions = {
   trustedIssuers: string[];
   didDocuments: DIDDocument[];
 };
@@ -397,18 +397,9 @@ const getCredentialSubject = (
   return cwtClaimsResult.cwtClaims.vc.credentialSubject;
 };
 
-/**
- * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
- * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {VerifyPassURIInternalOptions} options options for the verification
- * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
- * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
- * @example <caption>Implementation of custom trusted issuers:</caption>
- * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
- */
-export const verifyPassURIInternal = (
+export const verifyPassURIOfflineInternal = (
   uri: string,
-  options: VerifyPassURIInternalOptions
+  options: VerifyPassURIOfflineInternalOptions
 ): VerificationResult => {
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
