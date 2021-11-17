@@ -4,6 +4,27 @@ import { verifyPassURIWithTrustedIssuers } from "./main";
 // https://nzcp.covid19.health.nz/
 const nzcpExamplesTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
+// DID document which works with the examples specified in v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/
+const nzcpExamplesDidDocument = {
+  "@context": "https://w3.org/ns/did/v1",
+  id: "did:web:nzcp.covid19.health.nz",
+  verificationMethod: [
+    {
+      id: "did:web:nzcp.covid19.health.nz#key-1",
+      controller: "did:web:nzcp.covid19.health.nz",
+      type: "JsonWebKey2020",
+      publicKeyJwk: {
+        kty: "EC",
+        crv: "P-256",
+        x: "zRR-XGsCp12Vvbgui4DD6O6cqmhfPuXMhi1OxPl8760",
+        y: "Iv5SU6FuW-TRYh5_GOrJlcV_gpF_GpFQhCOD8LSk3T0",
+      },
+    },
+  ],
+  assertionMethod: ["did:web:nzcp.covid19.health.nz#key-1"],
+};
+
 // https://nzcp.covid19.health.nz/#valid-worked-example
 const validPass =
   "NZCP:/1/2KCEVIQEIVVWK6JNGEASNICZAEP2KALYDZSGSZB2O5SWEOTOPJRXALTDN53GSZBRHEXGQZLBNR2GQLTOPICRUYMBTIFAIGTUKBAAUYTWMOSGQQDDN5XHIZLYOSBHQJTIOR2HA4Z2F4XXO53XFZ3TGLTPOJTS6MRQGE4C6Y3SMVSGK3TUNFQWY4ZPOYYXQKTIOR2HA4Z2F4XW46TDOAXGG33WNFSDCOJONBSWC3DUNAXG46RPMNXW45DFPB2HGL3WGFTXMZLSONUW63TFGEXDALRQMR2HS4DFQJ2FMZLSNFTGSYLCNRSUG4TFMRSW45DJMFWG6UDVMJWGSY2DN53GSZCQMFZXG4LDOJSWIZLOORUWC3CTOVRGUZLDOSRWSZ3JOZSW4TTBNVSWISTBMNVWUZTBNVUWY6KOMFWWKZ2TOBQXE4TPO5RWI33CNIYTSNRQFUYDILJRGYDVAYFE6VGU4MCDGK7DHLLYWHVPUS2YIDJOA6Y524TD3AZRM263WTY2BE4DPKIF27WKF3UDNNVSVWRDYIYVJ65IRJJJ6Z25M2DO4YZLBHWFQGVQR5ZLIWEQJOZTS3IQ7JTNCFDX";
@@ -112,3 +133,15 @@ test("Non string uri unsuccesful", async () => {
   expect(result.violates?.section).toBe("4.3");
 });
 
+// Custom Test: BYO DID document
+test("Valid pass is successful with BYO DID document", async () => {
+  const result = await verifyPassURIWithTrustedIssuers(
+    validPass,
+    nzcpExamplesTrustedIssuers,
+    [nzcpExamplesDidDocument]
+  );
+  expect(result.success).toBe(true);
+  expect(result.credentialSubject?.givenName).toBe("Jack");
+  expect(result.credentialSubject?.familyName).toBe("Sparrow");
+  expect(result.credentialSubject?.dob).toBe("1960-04-16");
+});
