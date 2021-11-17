@@ -15,7 +15,7 @@ import { DIDDocument } from "did-resolver";
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
 const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
 
-export { VerificationResult, CredentialSubject, Violates };
+export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 
 /**
  * Verifies a New Zealand COVID-19 Vaccination Passport using NZCP trusted issuers.
