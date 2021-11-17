@@ -85,6 +85,37 @@ const result = await verifyPassURIWithTrustedIssuers(
 );
 ```
 
+### Offline support
+
+For offline verification, you can use the `verifyPassURI` method with the following parameters:
+
+```javascript
+import { verifyPassURI } from "@vaxxnz/nzcp";
+import liveDIDDocument from "./liveDIDDocument.json"
+
+const result = await verifyPassURI(
+  "NZCP:/1/2KCEVIQEIVVWK6...",
+  [liveDIDDocument]             // Array of DID documents accessible offline
+);
+```
+
+Or `verifyPassURIWithTrustedIssuers` with the following parameters:
+
+```javascript
+import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
+import exampleDIDDocument from "./exampleDIDDocument.json"
+
+const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+
+const result = await verifyPassURIWithTrustedIssuers(
+  "NZCP:/1/2KCEVIQEIVVWK6...",
+  exampleTrustedIssuers,
+  [exampleDIDDocument]        // Array of DID documents accessible offline
+);
+```
+
+Where `liveDIDDocument` or `exampleDIDDocument` are the DID documents you saved for offline use.
+
 ## Support
 
 See something that can be improved? [Report an Issue](https://github.com/vaxxnz/nzcp-js/issues) or contact us to [report a security concern](mailto:info@vaxx.nz).
