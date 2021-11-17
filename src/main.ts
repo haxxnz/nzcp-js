@@ -28,8 +28,8 @@ export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 export { DID_DOCUMENTS };
 
 export type VerifyPassURIOfflineOptions = {
-  trustedIssuer: string | string[];
-  didDocument: DIDDocument | DIDDocument[];
+  trustedIssuer?: string | string[];
+  didDocument?: DIDDocument | DIDDocument[];
 };
 
 export const verifyPassURIOffline = (
@@ -81,7 +81,7 @@ export const verifyPassURIOffline = (
 };
 
 export type VerifyPassURIOptions = {
-  trustedIssuer: string | string[];
+  trustedIssuer?: string | string[];
 };
 
 export const verifyPassURI = async (
