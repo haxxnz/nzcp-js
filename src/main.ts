@@ -3,7 +3,7 @@ import did from "./did";
 import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
-import { VerificationResult, Violates } from "./generalTypes";
+import { GenericResult, VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
 import { CredentialSubject } from "./cwtTypes";
 import { DIDDocument } from "did-resolver";
@@ -31,7 +31,6 @@ type VerifyPassURIOfflineOptions = {
   didDocument: DIDDocument | DIDDocument[];
 };
 
-
 export const verifyPassURIOffline = (
   uri: string,
   options?: VerifyPassURIOfflineOptions
@@ -54,7 +53,6 @@ export const verifyPassURIOffline = (
   });
 };
 
-
 type VerifyPassURIInternalOptions = {
   trustedIssuers: string[];
   didDocuments: DIDDocument[];
@@ -63,21 +61,11 @@ type VerifyPassURIInternalOptions = {
 // TODO: add tests for every error path
 
 /**
- * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
- * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {VerifyPassURIInternalOptions} options options for the verification
- * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
- * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
- * @example <caption>Implementation of custom trusted issuers:</caption>
- * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
+ * gets COSE Structure from URI
+ * @param uri the COVID-19 Passport URI to be verified
+ * @returns {GenericResult} a result of with the COSE structure
  */
-export const verifyPassURIInternal = (
-  uri: string,
-  options: VerifyPassURIInternalOptions
-): VerificationResult => {
-  const trustedIssuers = options.trustedIssuers;
-  const didDocuments = options.didDocuments;
-
+const getCOSEStructure = (uri: string): GenericResult => {
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding
@@ -87,7 +75,6 @@ export const verifyPassURIInternal = (
   if (typeof uri !== "string") {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message: "The payload of the QR Code MUST be a string",
         section: "4.3",
@@ -102,7 +89,6 @@ export const verifyPassURIInternal = (
   if (!payloadMatch) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
@@ -112,15 +98,13 @@ export const verifyPassURIInternal = (
     };
   }
 
-  const [, payloadPrefix, versionIdentifier, base32EncodedCWT] =
-    payloadMatch;
+  const [, payloadPrefix, versionIdentifier, base32EncodedCWT] = payloadMatch;
 
   // Section 4.5
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:/") {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
@@ -138,7 +122,6 @@ export const verifyPassURIInternal = (
   if (versionIdentifier !== "1") {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "The version-identifier portion of the payload for the specification MUST be 1",
@@ -162,7 +145,6 @@ export const verifyPassURIInternal = (
   } catch (error) {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message: "The payload of the QR Code MUST be base32 encoded",
         section: "4.7",
@@ -186,6 +168,34 @@ export const verifyPassURIInternal = (
   //   58            -- Bytes, length next 1 byte
   //     40          -- Bytes, length: 64
   const decodedCOSEStructure = decodeCBOR(uint8array);
+
+  return { success: true, data: decodedCOSEStructure };
+};
+
+/**
+ * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
+ * @param {string} uri the COVID-19 Passport URI to be verified
+ * @param {VerifyPassURIInternalOptions} options options for the verification
+ * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
+ * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
+ * @example <caption>Implementation of custom trusted issuers:</caption>
+ * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
+ */
+export const verifyPassURIInternal = (
+  uri: string,
+  options: VerifyPassURIInternalOptions
+): VerificationResult => {
+  const trustedIssuers = options.trustedIssuers;
+  const didDocuments = options.didDocuments;
+
+  const decodedCOSEStructureResult = getCOSEStructure(uri);
+  if (!decodedCOSEStructureResult.success) {
+    return {
+      ...decodedCOSEStructureResult,
+      credentialSubject: null,
+    };
+  }
+  const decodedCOSEStructure = decodedCOSEStructureResult.data as any;
 
   // Decoding the byte string present in the first element of the Decoded COSE structure, as a CBOR structure and rendering it via the expanded form yields the following.
   // Let this result be known as the Decoded CWT protected headers.

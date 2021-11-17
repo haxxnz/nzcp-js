@@ -6,6 +6,10 @@ export interface Violates {
   link: string;
 }
 
+export type GenericResult<T = unknown> =
+  | { success: true; data: T }
+  | { success: false; violates: Violates };
+
 export type VerificationResult =
   | { success: true; violates: null; credentialSubject: CredentialSubject }
   | { success: false; violates: Violates; credentialSubject: null };
