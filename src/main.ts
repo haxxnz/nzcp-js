@@ -185,9 +185,6 @@ export const verifyPassURIInternal = (
   uri: string,
   options: VerifyPassURIInternalOptions
 ): VerificationResult => {
-  const trustedIssuers = options.trustedIssuers;
-  const didDocuments = options.didDocuments;
-
   const decodedCOSEStructureResult = getCOSEStructure(uri);
   if (!decodedCOSEStructureResult.success) {
     return {
@@ -270,7 +267,7 @@ export const verifyPassURIInternal = (
   // TODO: section number?
   // // Validate that the iss claim in the decoded CWT payload is an issuer you trust refer to the trusted issuers section for a trusted list, if not then fail.
   // are we supporting other issuers?
-  if (!trustedIssuers.includes(iss)) {
+  if (!options.trustedIssuers.includes(iss)) {
     return {
       success: false,
       credentialSubject: null,
@@ -304,7 +301,7 @@ export const verifyPassURIInternal = (
   //   ]
   // }
 
-  const didDocument = didDocuments.find((d) => d.id === iss) ?? null;
+  const didDocument = options.didDocuments.find((d) => d.id === iss) ?? null;
 
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
