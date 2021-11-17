@@ -141,3 +141,5 @@ test("Live pass is successful with BYO DID document", async () => {
   );
   expect(result.success).toBe(true);
 });
+
+// TODO: add all tests from will's example
