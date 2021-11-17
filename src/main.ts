@@ -17,8 +17,9 @@ const liveTrustedIssuer = "did:web:nzcp.identity.health.nz";
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 
-type VerifyPassURIOptions = {
-  trustedIssuer: string | string[];
+type VerifyPassURIInternalOptions = {
+  trustedIssuers: string[];
+  didDocuments: DIDDocument[];
 };
 
 // TODO: add tests for every error path
@@ -26,17 +27,18 @@ type VerifyPassURIOptions = {
 /**
  * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
  * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {VerifyPassURIOptions} options options for the verification
+ * @param {VerifyPassURIInternalOptions} options options for the verification
  * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
  * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
  * @example <caption>Implementation of custom trusted issuers:</caption>
  * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
  */
-export const verifyPassURI = async (
+export const verifyPassURIInternal = (
   uri: string,
-  options?: VerifyPassURIOptions,
-): Promise<VerificationResult> => {
-  const trustedIssuers = options ? Array.isArray(options.trustedIssuer) ? options.trustedIssuer : [options.trustedIssuer] : [liveTrustedIssuer];
+  options: VerifyPassURIInternalOptions
+): VerificationResult => {
+  const trustedIssuers = options.trustedIssuers;
+  const didDocuments = options.didDocuments;
 
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
@@ -254,23 +256,7 @@ export const verifyPassURI = async (
   //   ]
   // }
 
-  const didResult = await did.resolve(iss);
-
-  if (didResult.didResolutionMetadata.error) {
-    // an error came back from the offical DID reference implementation
-    // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
-    return {
-      success: false,
-      credentialSubject: null,
-      violates: {
-        message: didResult.didResolutionMetadata.error,
-        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-        section: "DID-CORE.1",
-      },
-    };
-  }
-
-  const didDocument = didResult.didDocument;
+  const didDocument = didDocuments.find((d) => d.id === iss) ?? null;
 
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
