@@ -68,17 +68,15 @@ On **unsuccessful** verification of the given pass, the `verifyPassURI` method r
 }
 ```
 
-### Advanced Parameters
 
-To allow for flexibility in this library, `verifyPassURIWithTrustedIssuers` method allows for additional parameters as documented below.
+### Verifying example COVID Passes
 
-#### Custom Trusted Issuers
+To verify [example COVID Passes from the spec](https://nzcp.covid19.health.nz/#valid-worked-example), use `verifyPassURIWithTrustedIssuers` with the following parameters:
 
 ```javascript
 import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
 
-// An array of trusted issuers which work with the NZ COVID Pass - Technical Specification
-// https://nzcp.covid19.health.nz/
+// An array of trusted issuers for the example COVID Passes
 const nzcpTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
 const result = await verifyPassURIWithTrustedIssuers(
