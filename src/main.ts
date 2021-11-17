@@ -13,41 +13,31 @@ import { DIDDocument } from "did-resolver";
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
 // The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
-const nzcpTrustedIssuers = ["did:web:nzcp.identity.health.nz"];
+const liveTrustedIssuer = "did:web:nzcp.identity.health.nz";
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 
-/**
- * Verifies a New Zealand COVID-19 Vaccination Passport using NZCP trusted issuers.
- * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {DIDDocument[]} didDocuments Array of DID documents accessible offline
- * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
- * @example <caption>Implementation of basic verification:</caption>
- * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...");
- */
-export const verifyPassURI = async (
-  uri: string,
-  didDocuments?: DIDDocument[]
-): Promise<VerificationResult> => {
-  return verifyPassURIWithTrustedIssuers(uri, nzcpTrustedIssuers, didDocuments);
+type VerifyPassURIOptions = {
+  trustedIssuer: string | string[];
 };
 
 // TODO: add tests for every error path
+
 /**
  * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
  * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {string[]} trustedIssuers a string array of trusted issuers to be used in the verification of a COVID-19 Vaccination Passport
- * @param {DIDDocument[]} didDocuments Array of DID documents accessible offline
+ * @param {VerifyPassURIOptions} options options for the verification
  * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
  * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
  * @example <caption>Implementation of custom trusted issuers:</caption>
- * const result = await verifyPassURIWithTrustedIssuers("NZCP:/1/2KCEVIQEIVV...", ["did:web:nzcp.covid19.health.nz", "..."]);
+ * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
  */
-export const verifyPassURIWithTrustedIssuers = async (
+export const verifyPassURI = async (
   uri: string,
-  trustedIssuers: string[],
-  didDocuments?: DIDDocument[]
+  options?: VerifyPassURIOptions,
 ): Promise<VerificationResult> => {
+  const trustedIssuers = options ? Array.isArray(options.trustedIssuer) ? options.trustedIssuer : [options.trustedIssuer] : [liveTrustedIssuer];
+
   // Section 4: 2D Barcode Encoding
   // Decoding the payload of the QR Code
   // https://nzcp.covid19.health.nz/#2d-barcode-encoding
