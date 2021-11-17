@@ -7,15 +7,53 @@ import { VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
 import { CredentialSubject } from "./cwtTypes";
 import { DIDDocument } from "did-resolver";
+import exampleDIDDocument from "./exampleDIDDocument.json";
+import liveDIDDocument from "./liveDIDDocument.json";
+
+const DID_DOCUMENTS = {
+  MOH_LIVE: liveDIDDocument,
+  MOH_EXAMPLE: exampleDIDDocument,
+};
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
-// The following is a list of trusted issuer identifiers for New Zealand Covid Passes.
+// The following is the live trusted issuer identifier for New Zealand Covid Passes.
 const liveTrustedIssuer = "did:web:nzcp.identity.health.nz";
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
+
+export { DID_DOCUMENTS };
+
+type VerifyPassURIOfflineOptions = {
+  trustedIssuer: string | string[];
+  didDocument: DIDDocument | DIDDocument[];
+};
+
+
+export const verifyPassURIOffline = (
+  uri: string,
+  options?: VerifyPassURIOfflineOptions
+): VerificationResult => {
+  const trustedIssuers =
+    options && options.trustedIssuer
+      ? Array.isArray(options.trustedIssuer)
+        ? options.trustedIssuer
+        : [options.trustedIssuer]
+      : [liveTrustedIssuer];
+  const didDocuments =
+    options && options.didDocument
+      ? Array.isArray(options.didDocument)
+        ? options.didDocument
+        : [options.didDocument]
+      : [DID_DOCUMENTS.MOH_LIVE];
+  return verifyPassURIInternal(uri, {
+    trustedIssuers,
+    didDocuments,
+  });
+};
+
 
 type VerifyPassURIInternalOptions = {
   trustedIssuers: string[];
