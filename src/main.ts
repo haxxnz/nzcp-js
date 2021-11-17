@@ -254,28 +254,23 @@ export const verifyPassURI = async (
   //   ]
   // }
 
-  let didDocument: DIDDocument | null;
-  if (didDocuments) {
-    didDocument = didDocuments.find((d) => d.id === iss) ?? null;
-  } else {
-    const didResult = await did.resolve(iss);
+  const didResult = await did.resolve(iss);
 
-    if (didResult.didResolutionMetadata.error) {
-      // an error came back from the offical DID reference implementation
-      // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
-      return {
-        success: false,
-        credentialSubject: null,
-        violates: {
-          message: didResult.didResolutionMetadata.error,
-          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-          section: "DID-CORE.1",
-        },
-      };
-    }
-
-    didDocument = didResult.didDocument;
+  if (didResult.didResolutionMetadata.error) {
+    // an error came back from the offical DID reference implementation
+    // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
+    return {
+      success: false,
+      credentialSubject: null,
+      violates: {
+        message: didResult.didResolutionMetadata.error,
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.1",
+      },
+    };
   }
+
+  const didDocument = didResult.didDocument;
 
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
