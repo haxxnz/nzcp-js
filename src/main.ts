@@ -27,7 +27,7 @@ const liveTrustedIssuer = "did:web:nzcp.identity.health.nz";
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 export { DID_DOCUMENTS };
 
-type VerifyPassURIOfflineOptions = {
+export type VerifyPassURIOfflineOptions = {
   trustedIssuer: string | string[];
   didDocument: DIDDocument | DIDDocument[];
 };
@@ -47,16 +47,42 @@ export const verifyPassURIOffline = (
       ? Array.isArray(options.didDocument)
         ? options.didDocument
         : [options.didDocument]
-      : [DID_DOCUMENTS.MOH_LIVE];
-  return verifyPassURIOfflineInternal(uri, {
-    trustedIssuers,
-    didDocuments,
-  });
+      : [DID_DOCUMENTS.MOH_LIVE as DIDDocument];
+
+  try {
+    const decodedCOSEStructure = getCOSEStructure(uri);
+    const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
+    const cwtClaims = getCWTClaims(decodedCOSEStructure);
+    const iss = getIss(cwtClaims, trustedIssuers);
+    const didDocument = didDocuments.find((d) => d.id === iss) ?? null;
+    const credentialSubject = getCredentialSubject(
+      iss,
+      cwtHeaders,
+      cwtClaims,
+      didDocument,
+      decodedCOSEStructure
+    );
+    return {
+      success: true,
+      violates: null,
+      credentialSubject,
+    };
+  } catch (err) {
+    const error = err as Error;
+    return {
+      success: false,
+      violates:
+        "violates" in error
+          ? (error as Violation).violates
+          : { message: err.message, section: "unknown", link: "" },
+      credentialSubject: null,
+    };
+  }
 };
 
-type VerifyPassURIOptions = {
+export type VerifyPassURIOptions = {
   trustedIssuer: string | string[];
-}
+};
 
 export const verifyPassURI = async (
   uri: string,
@@ -68,11 +94,50 @@ export const verifyPassURI = async (
         ? options.trustedIssuer
         : [options.trustedIssuer]
       : [liveTrustedIssuer];
-  return verifyPassURIInternal(uri, {
-    trustedIssuers,
-  });
-};
 
+  try {
+    const decodedCOSEStructure = getCOSEStructure(uri);
+    const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
+    const cwtClaims = getCWTClaims(decodedCOSEStructure);
+    const iss = getIss(cwtClaims, trustedIssuers);
+
+    const didResult = await did.resolve(iss);
+    if (didResult.didResolutionMetadata.error) {
+      // an error came back from the offical DID reference implementation
+      // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
+      throw new Violation({
+        violates: {
+          message: didResult.didResolutionMetadata.error,
+          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+          section: "DID-CORE.1",
+        },
+      });
+    }
+
+    const credentialSubject = getCredentialSubject(
+      iss,
+      cwtHeaders,
+      cwtClaims,
+      didResult.didDocument,
+      decodedCOSEStructure
+    );
+    return {
+      success: true,
+      violates: null,
+      credentialSubject,
+    };
+  } catch (err) {
+    const error = err as Error;
+    return {
+      success: false,
+      violates:
+        "violates" in error
+          ? (error as Violation).violates
+          : { message: err.message, section: "unknown", link: "" },
+      credentialSubject: null,
+    };
+  }
+};
 
 // TODO: add tests for every error path
 
@@ -410,96 +475,4 @@ const getCredentialSubject = (
     });
   }
   return cwtClaimsResult.cwtClaims.vc.credentialSubject;
-};
-
-type VerifyPassURIOfflineInternalOptions = {
-  trustedIssuers: string[];
-  didDocuments: DIDDocument[];
-};
-
-const verifyPassURIOfflineInternal = (
-  uri: string,
-  options: VerifyPassURIOfflineInternalOptions
-): VerificationResult => {
-  try {
-    const decodedCOSEStructure = getCOSEStructure(uri);
-    const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
-    const cwtClaims = getCWTClaims(decodedCOSEStructure);
-    const iss = getIss(cwtClaims, options.trustedIssuers);
-    const didDocument = options.didDocuments.find((d) => d.id === iss) ?? null;
-    const credentialSubject = getCredentialSubject(
-      iss,
-      cwtHeaders,
-      cwtClaims,
-      didDocument,
-      decodedCOSEStructure
-    );
-    return {
-      success: true,
-      violates: null,
-      credentialSubject,
-    };
-  } catch (err) {
-    const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
-  }
-};
-
-type VerifyPassURIInternalOptions = {
-  trustedIssuers: string[];
-}
-
-const verifyPassURIInternal = async (
-  uri: string,
-  options: VerifyPassURIInternalOptions
-): Promise<VerificationResult> => {
-  try {
-    const decodedCOSEStructure = getCOSEStructure(uri);
-    const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
-    const cwtClaims = getCWTClaims(decodedCOSEStructure);
-    const iss = getIss(cwtClaims, options.trustedIssuers);
-
-    const didResult = await did.resolve(iss);
-    if (didResult.didResolutionMetadata.error) {
-      // an error came back from the offical DID reference implementation
-      // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
-      throw new Violation({
-        violates: {
-          message: didResult.didResolutionMetadata.error,
-          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-          section: "DID-CORE.1",
-        },
-      });
-    }
-
-    const credentialSubject = getCredentialSubject(
-      iss,
-      cwtHeaders,
-      cwtClaims,
-      didResult.didDocument,
-      decodedCOSEStructure
-    );
-    return {
-      success: true,
-      violates: null,
-      credentialSubject,
-    };
-  } catch (err) {
-    const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
-  }
 };
