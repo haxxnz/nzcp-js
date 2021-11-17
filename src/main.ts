@@ -1,11 +1,11 @@
 import { base32 } from "rfc4648";
-import did from "./did";
+// import did from "./did";
 import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
 import { GenericResult, VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
-import { CredentialSubject } from "./cwtTypes";
+import { CredentialSubject, CWTClaims, CWTHeaders } from "./cwtTypes";
 import { DIDDocument } from "did-resolver";
 import exampleDIDDocument from "./exampleDIDDocument.json";
 import liveDIDDocument from "./liveDIDDocument.json";
@@ -172,28 +172,9 @@ const getCOSEStructure = (uri: string): GenericResult => {
   return { success: true, data: decodedCOSEStructure };
 };
 
-/**
- * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
- * @param {string} uri the COVID-19 Passport URI to be verified
- * @param {VerifyPassURIInternalOptions} options options for the verification
- * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
- * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
- * @example <caption>Implementation of custom trusted issuers:</caption>
- * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
- */
-export const verifyPassURIInternal = (
-  uri: string,
-  options: VerifyPassURIInternalOptions
-): VerificationResult => {
-  const decodedCOSEStructureResult = getCOSEStructure(uri);
-  if (!decodedCOSEStructureResult.success) {
-    return {
-      ...decodedCOSEStructureResult,
-      credentialSubject: null,
-    };
-  }
-  const decodedCOSEStructure = decodedCOSEStructureResult.data as any;
-
+const getCWTHeaders = (
+  decodedCOSEStructure: any
+): GenericResult<Partial<CWTHeaders>> => {
   // Decoding the byte string present in the first element of the Decoded COSE structure, as a CBOR structure and rendering it via the expanded form yields the following.
   // Let this result be known as the Decoded CWT protected headers.
   // a2                -- Map, 2 pairs
@@ -217,7 +198,6 @@ export const verifyPassURIInternal = (
   } else {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
@@ -231,7 +211,6 @@ export const verifyPassURIInternal = (
   } else {
     return {
       success: false,
-      credentialSubject: null,
       violates: {
         message:
           "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
@@ -240,15 +219,61 @@ export const verifyPassURIInternal = (
       },
     };
   }
-
+  return { success: true, data: cwtHeaders };
+};
+const getCWTClaims = (
+  decodedCOSEStructure: any
+): GenericResult<Partial<CWTClaims>> => {
   const rawCWTClaims = decodeCBOR(decodedCOSEStructure.value[2]) as Map<
     number | string,
     string | number | Buffer | unknown
   >;
 
   const cwtClaims = parseCWTClaims(rawCWTClaims);
+  return { success: true, data: cwtClaims };
+};
 
-  const iss = cwtClaims.iss;
+/**
+ * Verifies a COVID-19 Vaccination Passport using a custom list of trusted issuers.
+ * @param {string} uri the COVID-19 Passport URI to be verified
+ * @param {VerifyPassURIInternalOptions} options options for the verification
+ * @returns {Promise<VerificationResult>} a verfication result of type Promise<VerificationResult>
+ * @see https://nzcp.covid19.health.nz/#trusted-issuers for a list of trusted issuers
+ * @example <caption>Implementation of custom trusted issuers:</caption>
+ * const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVV...", { trustedIssuer: "did:web:nzcp.covid19.health.nz" });
+ */
+export const verifyPassURIInternal = (
+  uri: string,
+  options: VerifyPassURIInternalOptions
+): VerificationResult => {
+
+  const decodedCOSEStructureResult = getCOSEStructure(uri);
+  if (!decodedCOSEStructureResult.success) {
+    return {
+      ...decodedCOSEStructureResult,
+      credentialSubject: null,
+    };
+  }
+  const decodedCOSEStructure = decodedCOSEStructureResult.data as any;
+
+  const cwtHeadersResult = getCWTHeaders(decodedCOSEStructure);
+  if (!cwtHeadersResult.success) {
+    return {
+      ...cwtHeadersResult,
+      credentialSubject: null,
+    };
+  }
+  const cwtHeaders = cwtHeadersResult.data ;
+
+  const cwtClaimsResult1 = getCWTClaims(decodedCOSEStructure);
+  if (!cwtClaimsResult1.success) {
+    return {
+      ...cwtClaimsResult1,
+      credentialSubject: null,
+    };
+  }
+
+  const iss = cwtClaimsResult1.data.iss;
 
   // Section 2.1.0.2.1
   // Issuer claim MUST be present
@@ -440,7 +465,7 @@ export const verifyPassURIInternal = (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const cwtClaimsResult = validateCWTClaims(cwtClaims);
+  const cwtClaimsResult = validateCWTClaims(cwtClaimsResult1.data);
   if (!cwtClaimsResult.success) {
     return {
       ...cwtClaimsResult,

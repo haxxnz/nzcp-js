@@ -28,7 +28,7 @@ export type RawCWTClaims = Map<
   string | number | Buffer | unknown
 >;
 
-interface CWTHeaders {
+export interface CWTHeaders {
   kid: string;
   alg: string;
 }
