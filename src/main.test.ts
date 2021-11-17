@@ -1,11 +1,14 @@
-import { verifyPassURIWithTrustedIssuers } from "./main";
+import { verifyPassURI, verifyPassURIWithTrustedIssuers } from "./main";
+import dotenv from "dotenv";
 
-// This is the list of trusted issuers which work with the examples specified in v1 of NZ COVID Pass - Technical Specification
+dotenv.config();
+
+// This is the list of trusted issuers which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 const nzcpExamplesTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
 
-// DID document which works with the examples specified in v1 of NZ COVID Pass - Technical Specification
-// https://nzcp.covid19.health.nz/
+// DID document which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/.well-known/did.json
 const nzcpExamplesDidDocument = {
   "@context": "https://w3.org/ns/did/v1",
   id: "did:web:nzcp.covid19.health.nz",
@@ -23,6 +26,30 @@ const nzcpExamplesDidDocument = {
     },
   ],
   assertionMethod: ["did:web:nzcp.covid19.health.nz#key-1"],
+};
+
+// DID document which works with the live passes specified in v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.identity.health.nz/.well-known/did.json
+const nzcpLiveDidDocument = {
+  id: "did:web:nzcp.identity.health.nz",
+  "@context": [
+    "https://w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+  ],
+  verificationMethod: [
+    {
+      id: "did:web:nzcp.identity.health.nz#z12Kf7UQ",
+      controller: "did:web:nzcp.identity.health.nz",
+      type: "JsonWebKey2020",
+      publicKeyJwk: {
+        kty: "EC",
+        crv: "P-256",
+        x: "DQCKJusqMsT0u7CjpmhjVGkHln3A3fS-ayeH4Nu52tc",
+        y: "lxgWzsLtVI8fqZmTPPo9nZ-kzGs7w7XO8-rUU68OxmI",
+      },
+    },
+  ],
+  assertionMethod: ["did:web:nzcp.identity.health.nz#z12Kf7UQ"],
 };
 
 // https://nzcp.covid19.health.nz/#valid-worked-example
@@ -144,4 +171,16 @@ test("Valid pass is successful with BYO DID document", async () => {
   expect(result.credentialSubject?.givenName).toBe("Jack");
   expect(result.credentialSubject?.familyName).toBe("Sparrow");
   expect(result.credentialSubject?.dob).toBe("1960-04-16");
+});
+
+// Custom Test: Live pass
+test("Live pass is successful", async () => {
+  const result = await verifyPassURI(process.env.LIVE_COVID_PASS_URI as string);
+  expect(result.success).toBe(true);
+});
+
+// Custom Test: Live pass with BYO DID document
+test("Live pass is successful with BYO DID document", async () => {
+  const result = await verifyPassURI(process.env.LIVE_COVID_PASS_URI as string, [nzcpLiveDidDocument]);
+  expect(result.success).toBe(true);
 });
