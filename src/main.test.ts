@@ -119,7 +119,6 @@ test("Valid pass is successful with BYO DID document", async () => {
   const result = await verifyPassURIOffline(
     validPass,
     { trustedIssuer: exampleTrustedIssuers, didDocument: exampleDIDDocument }
-    // [exampleDIDDocument]
   );
   expect(result.success).toBe(true);
   expect(result.credentialSubject?.givenName).toBe("Jack");
