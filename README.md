@@ -109,7 +109,10 @@ yarn install
 ```bash
 # Use developer scripts
 yarn lint
-yarn test
-yarn test-watch
 yarn build-all
 ```
+
+## Run tests
+- Create `.env` in the root directory of the project
+  - see `.env.example` for an example.
+- Run `yarn test` or `yarn test-watch`
