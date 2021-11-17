@@ -1,56 +1,19 @@
 import { verifyPassURI, verifyPassURIWithTrustedIssuers } from "./main";
 import dotenv from "dotenv";
 
+// DID document which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.covid19.health.nz/.well-known/did.json
+import exampleDIDDocument from "./exampleDIDDocument.json"
+
+// DID document which works with the live passes specified in v1 of NZ COVID Pass - Technical Specification
+// https://nzcp.identity.health.nz/.well-known/did.json
+import liveDIDDocument from "./liveDIDDocument.json"
+
 dotenv.config();
 
 // This is the list of trusted issuers which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
-
-// DID document which works with the example passes specified in v1 of NZ COVID Pass - Technical Specification
-// https://nzcp.covid19.health.nz/.well-known/did.json
-const nzcpExamplesDidDocument = {
-  "@context": "https://w3.org/ns/did/v1",
-  id: "did:web:nzcp.covid19.health.nz",
-  verificationMethod: [
-    {
-      id: "did:web:nzcp.covid19.health.nz#key-1",
-      controller: "did:web:nzcp.covid19.health.nz",
-      type: "JsonWebKey2020",
-      publicKeyJwk: {
-        kty: "EC",
-        crv: "P-256",
-        x: "zRR-XGsCp12Vvbgui4DD6O6cqmhfPuXMhi1OxPl8760",
-        y: "Iv5SU6FuW-TRYh5_GOrJlcV_gpF_GpFQhCOD8LSk3T0",
-      },
-    },
-  ],
-  assertionMethod: ["did:web:nzcp.covid19.health.nz#key-1"],
-};
-
-// DID document which works with the live passes specified in v1 of NZ COVID Pass - Technical Specification
-// https://nzcp.identity.health.nz/.well-known/did.json
-const nzcpLiveDidDocument = {
-  id: "did:web:nzcp.identity.health.nz",
-  "@context": [
-    "https://w3.org/ns/did/v1",
-    "https://w3id.org/security/suites/jws-2020/v1",
-  ],
-  verificationMethod: [
-    {
-      id: "did:web:nzcp.identity.health.nz#z12Kf7UQ",
-      controller: "did:web:nzcp.identity.health.nz",
-      type: "JsonWebKey2020",
-      publicKeyJwk: {
-        kty: "EC",
-        crv: "P-256",
-        x: "DQCKJusqMsT0u7CjpmhjVGkHln3A3fS-ayeH4Nu52tc",
-        y: "lxgWzsLtVI8fqZmTPPo9nZ-kzGs7w7XO8-rUU68OxmI",
-      },
-    },
-  ],
-  assertionMethod: ["did:web:nzcp.identity.health.nz#z12Kf7UQ"],
-};
 
 // https://nzcp.covid19.health.nz/#valid-worked-example
 const validPass =
@@ -165,7 +128,7 @@ test("Valid pass is successful with BYO DID document", async () => {
   const result = await verifyPassURIWithTrustedIssuers(
     validPass,
     exampleTrustedIssuers,
-    [nzcpExamplesDidDocument]
+    [exampleDIDDocument]
   );
   expect(result.success).toBe(true);
   expect(result.credentialSubject?.givenName).toBe("Jack");
@@ -181,6 +144,6 @@ test("Live pass is successful", async () => {
 
 // Custom Test: Live pass with BYO DID document
 test("Live pass is successful with BYO DID document", async () => {
-  const result = await verifyPassURI(process.env.LIVE_COVID_PASS_URI as string, [nzcpLiveDidDocument]);
+  const result = await verifyPassURI(process.env.LIVE_COVID_PASS_URI as string, [liveDIDDocument]);
   expect(result.success).toBe(true);
 });

@@ -3,6 +3,7 @@
     "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "declaration": true,
     "strict": false,
     "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
