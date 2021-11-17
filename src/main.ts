@@ -112,7 +112,7 @@ export const verifyPassURIInternal = (
     };
   }
 
-  const [_match, payloadPrefix, versionIdentifier, base32EncodedCWT] =
+  const [, payloadPrefix, versionIdentifier, base32EncodedCWT] =
     payloadMatch;
 
   // Section 4.5
