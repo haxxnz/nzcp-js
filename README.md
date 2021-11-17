@@ -22,6 +22,12 @@ npm i @vaxxnz/nzcp
 yarn add @vaxxnz/nzcp
 ```
 
+## Projects
+
+This library is current used in
+
+- [Vaxxed.as](https://vaxxed.as) An offline NZ COVID Pass verifier by @rafcontreras
+
 ## Demo
 
 - [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
