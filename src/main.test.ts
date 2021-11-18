@@ -142,9 +142,6 @@ test("Live pass is successful with BYO DID document", async () => {
   expect(result.success).toBe(true);
 });
 
-// TODO: add all tests from will's example
-
-
 
 test("Standard usage, resolves DID document, resolves according to spec", async () => {
   const result = await verifyPassURI(LIVE_PASS);

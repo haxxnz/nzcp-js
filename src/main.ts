@@ -38,7 +38,6 @@ export type VerifyPassURIOfflineOptions = {
   didDocument?: DIDDocument | DIDDocument[];
 };
 
-// TODO: test both no options and empty options
 export const verifyPassURIOffline = (
   uri: string,
   options?: VerifyPassURIOfflineOptions
