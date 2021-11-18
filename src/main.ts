@@ -12,42 +12,53 @@ import liveDIDDocument from "./liveDIDDocument.json";
 import { Violation } from "./violation";
 import { DecodedCOSEStructure } from "./coseTypes";
 
+// https://nzcp.covid19.health.nz/#did-document
+// The following is the DID Documents for the NZCP DID.
 const DID_DOCUMENTS = {
   MOH_LIVE: liveDIDDocument,
   MOH_EXAMPLE: exampleDIDDocument,
 };
 
+// https://nzcp.covid19.health.nz/#trusted-issuers
+// The following is the live trusted issuer identifier for New Zealand Covid Passes.
+const TRUSTED_ISSUERS = {
+  MOH_LIVE: "did:web:nzcp.identity.health.nz",
+  MOH_EXAMPLE: "did:web:nzcp.covid19.health.nz",
+}
+
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
 
-// https://nzcp.covid19.health.nz/#trusted-issuers
-// The following is the live trusted issuer identifier for New Zealand Covid Passes.
-const liveTrustedIssuer = "did:web:nzcp.identity.health.nz";
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
-export { DID_DOCUMENTS };
+export { DID_DOCUMENTS, TRUSTED_ISSUERS };
 
 export type VerifyPassURIOfflineOptions = {
   trustedIssuer?: string | string[];
   didDocument?: DIDDocument | DIDDocument[];
 };
 
+// TODO: test both no options and empty options
 export const verifyPassURIOffline = (
   uri: string,
   options?: VerifyPassURIOfflineOptions
 ): VerificationResult => {
-  const trustedIssuers =
-    options && options.trustedIssuer
-      ? Array.isArray(options.trustedIssuer)
-        ? options.trustedIssuer
-        : [options.trustedIssuer]
-      : [liveTrustedIssuer];
   const didDocuments =
     options && options.didDocument
       ? Array.isArray(options.didDocument)
         ? options.didDocument
         : [options.didDocument]
       : [DID_DOCUMENTS.MOH_LIVE as DIDDocument];
+
+  // by default trust whatever issuers you specify in didDocuments
+  const defaultTrustedIssuers = didDocuments.map(didDocument => didDocument.id);
+
+  const trustedIssuers =
+    options && options.trustedIssuer
+      ? Array.isArray(options.trustedIssuer)
+        ? options.trustedIssuer
+        : [options.trustedIssuer]
+      : defaultTrustedIssuers;
 
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
@@ -93,7 +104,7 @@ export const verifyPassURI = async (
       ? Array.isArray(options.trustedIssuer)
         ? options.trustedIssuer
         : [options.trustedIssuer]
-      : [liveTrustedIssuer];
+      : [TRUSTED_ISSUERS.MOH_LIVE];
 
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
