@@ -191,6 +191,16 @@ test("offline usage, use hard coded DID document", () => {
   expect(result.success).toBe(true)
 })
 
+test("offline usage, use hard coded DID document. empty options", () => {
+  const result = verifyPassURIOffline(LIVE_PASS, {});
+  expect(result.success).toBe(true)
+})
+
+test("offline usage, use hard coded DID document. bad pass", () => {
+  const result = verifyPassURIOffline(EXAMPLE_PASS);
+  expect(result.success).toBe(false)
+})
+
 test("offline usage, use hard coded DID document (same as the previous call)", () => {
   const result = verifyPassURIOffline(LIVE_PASS, { didDocument: DID_DOCUMENTS.MOH_LIVE });
   expect(result.success).toBe(true)
@@ -210,3 +220,26 @@ test("offline usage, pass your own DID document, allow didDocument to be string|
   const result = verifyPassURIOffline(EXAMPLE_PASS, { didDocument: [DID_DOCUMENTS.MOH_EXAMPLE] });
   expect(result.success).toBe(true)
 })
+
+
+test("offline usage, use hard coded DID document (same as the previous call). with trusted issuer", () => {
+  const result = verifyPassURIOffline(LIVE_PASS, { didDocument: DID_DOCUMENTS.MOH_LIVE, trustedIssuer: TRUSTED_ISSUERS.MOH_LIVE });
+  expect(result.success).toBe(true)
+})
+
+test("offline usage, use hard coded DID document (same as the previous call). with wrong trusted issuer", () => {
+  const result = verifyPassURIOffline(LIVE_PASS, { didDocument: DID_DOCUMENTS.MOH_LIVE, trustedIssuer: TRUSTED_ISSUERS.MOH_EXAMPLE });
+  expect(result.success).toBe(false)
+})
+
+
+test("offline usage, use hard coded DID document (same as the previous call). with trusted issuer array ", () => {
+  const result = verifyPassURIOffline(LIVE_PASS, { didDocument: DID_DOCUMENTS.MOH_LIVE, trustedIssuer: [TRUSTED_ISSUERS.MOH_LIVE] });
+  expect(result.success).toBe(true)
+})
+
+test("offline usage, use hard coded DID document (same as the previous call). with wrong trusted issuer array", () => {
+  const result = verifyPassURIOffline(LIVE_PASS, { didDocument: DID_DOCUMENTS.MOH_LIVE, trustedIssuer: [TRUSTED_ISSUERS.MOH_EXAMPLE] });
+  expect(result.success).toBe(false)
+})
+
