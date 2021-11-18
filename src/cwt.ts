@@ -1,4 +1,5 @@
 import {
+  CWTClaims,
   RawCWTClaims,
   RawCWTHeaders,
   UnvalidatedCWTClaims,
@@ -8,6 +9,7 @@ import {
 import { CWTClaimsResult } from "./generalTypes";
 import { decodeCtiToJti } from "./jtiCti";
 import { currentTimestamp } from "./util";
+import { Violation } from "./violation";
 
 export function parseCWTClaims(
   rawCWTClaims: RawCWTClaims
@@ -69,23 +71,19 @@ export function parseCWTClaims(
 
 // parse CWT claims
 // https://nzcp.covid19.health.nz/#cwt-claims
-export function validateCWTClaims(
-  cwtClaims: UnvalidatedCWTClaims
-): CWTClaimsResult {
+export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
   // Section 2.1.0.1.5
   // The claim key for cti of 7 MUST be used
   if (cwtClaims.jti) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message: "CWT Token ID claim MUST be present",
         section: "2.1.0.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // Section 2.1.0.2.5
@@ -93,31 +91,27 @@ export function validateCWTClaims(
   if (cwtClaims.iss) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message: "Issuer claim MUST be present",
         section: "2.1.0.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: null,
-    };
+    });
   }
   // Section 2.1.0.3.5
   // The claim key for nbf of 5 MUST be used
   if (cwtClaims.nbf) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message:
           "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // Section 2.1.0.4.5
@@ -125,47 +119,41 @@ export function validateCWTClaims(
   if (cwtClaims.exp) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message:
           "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // TODO: what section number?
   if (currentTimestamp() >= cwtClaims.nbf) {
     // pass
   } else {
-    return {
-      success: false,
-      cwtClaims: null,
+    throw new Violation({
       violates: {
         message:
           "The current datetime is after or equal to the value of the `nbf` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
         section: "2.1.0.3.3",
       },
-    };
+    });
   }
 
   // TODO: what section number?
   if (currentTimestamp() < cwtClaims.exp) {
     // pass
   } else {
-    return {
-      success: false,
-      cwtClaims: null,
+    throw new Violation({
       violates: {
         message: "The current datetime is before the value of the `exp` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
         section: "2.1.0.4.3",
       },
-    };
+    });
   }
 
   // Section 2.1.0.5.3
@@ -173,15 +161,13 @@ export function validateCWTClaims(
   if (cwtClaims.vc) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message: "Verifiable Credential CWT claim MUST be present",
         section: "2.1.0.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure
@@ -198,16 +184,14 @@ export function validateCWTClaims(
   ) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message:
           "Verifiable Credential JSON-LD Context property doesn't conform to New Zealand COVID Pass example",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.2",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   if (
@@ -225,16 +209,14 @@ export function validateCWTClaims(
   ) {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message:
           "Verifiable Credential Type property doesn't conform to New Zealand COVID Pass example",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.5",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // Section 2.3.8
@@ -242,15 +224,13 @@ export function validateCWTClaims(
   if (cwtClaims.vc.version === "1.0.0") {
     // pass
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message: "Verifiable Credential Version property MUST be 1.0.0",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.8",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   // Section 2.3.9
@@ -258,50 +238,40 @@ export function validateCWTClaims(
   if (cwtClaims.vc.credentialSubject) {
     // and its value MUST be a JSON object with properties determined by the declared pass type for the pass
     if (!cwtClaims.vc.credentialSubject.givenName) {
-      return {
-        success: false,
+      throw new Violation({
         violates: {
           message: "Missing REQUIRED 'givenName' in credentialSubject property",
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.1",
         },
-        cwtClaims: null,
-      };
+      });
     }
     if (!cwtClaims.vc.credentialSubject.dob) {
-      return {
-        success: false,
+      throw new Violation({
         violates: {
           message: "Missing REQUIRED 'dob' in credentialSubject property",
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.2",
         },
-        cwtClaims: null,
-      };
+      });
     }
   } else {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message:
           "Verifiable Credential Credential Subject property MUST be present",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.9",
       },
-      cwtClaims: null,
-    };
+    });
   }
 
   return {
-    success: true,
-    cwtClaims: {
-      jti: cwtClaims.jti,
-      iss: cwtClaims.iss,
-      nbf: cwtClaims.nbf,
-      exp: cwtClaims.exp,
-      vc: cwtClaims.vc,
-    },
-    violates: null,
+    jti: cwtClaims.jti,
+    iss: cwtClaims.iss,
+    nbf: cwtClaims.nbf,
+    exp: cwtClaims.exp,
+    vc: cwtClaims.vc,
   };
 }
 

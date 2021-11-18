@@ -478,11 +478,6 @@ const getCredentialSubject = (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const cwtClaimsResult = validateCWTClaims(cwtClaims);
-  if (!cwtClaimsResult.success) {
-    throw new Violation({
-      ...cwtClaimsResult,
-    });
-  }
-  return cwtClaimsResult.cwtClaims.vc.credentialSubject;
+  const validatedCwtClaims = validateCWTClaims(cwtClaims);
+  return validatedCwtClaims.vc.credentialSubject
 };
