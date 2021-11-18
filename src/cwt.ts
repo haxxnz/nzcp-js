@@ -6,7 +6,6 @@ import {
   UnvalidatedCWTHeaders,
   VC,
 } from "./cwtTypes";
-import { CWTClaimsResult } from "./generalTypes";
 import { decodeCtiToJti } from "./jtiCti";
 import { currentTimestamp } from "./util";
 import { Violation } from "./violation";
