@@ -154,7 +154,7 @@ export const verifyPassURI = async (
 /**
  * gets COSE Structure from URI
  * @param uri the COVID-19 Passport URI to be verified
- * @returns {GenericResult} a result of with the COSE structure
+ * @returns {DecodedCOSEStructure} the COSE structure
  */
 const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   // Section 4: 2D Barcode Encoding
