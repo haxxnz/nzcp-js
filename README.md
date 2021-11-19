@@ -27,7 +27,9 @@ yarn add @vaxxnz/nzcp
 - [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
 - [React.js demo on CodeSandbox](https://codesandbox.io/s/nzcpjs-demo-4vjgb)
 
-## Online Usage
+## Usage
+
+### Online
 
 ```javascript
 import { verifyPassURI } from "@vaxxnz/nzcp";
@@ -36,12 +38,12 @@ import { verifyPassURI } from "@vaxxnz/nzcp";
 const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
-## Offline Usage
+### Offline
 
 ```javascript
 import { verifyPassURI } from "@vaxxnz/nzcp";
 
-// Verify a New Zealand COVID-19 Pass, using the DID document saved from https://nzcp.identity.health.nz/.well-known/did.json for offline use
+// Verify a New Zealand COVID-19 Pass, using a cached DID document from https://nzcp.identity.health.nz/.well-known/did.json
 const result = verifyPassUriOffline("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
