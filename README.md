@@ -41,10 +41,10 @@ const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVVWK6...");
 ### Offline
 
 ```javascript
-import { verifyPassURI } from "@vaxxnz/nzcp";
+import { verifyPassURIOffline } from "@vaxxnz/nzcp";
 
 // Verify a live New Zealand COVID-19 Pass, using a prefetched DID document
-const result = verifyPassUriOffline("NZCP:/1/2KCEVIQEIVVWK6...");
+const result = verifyPassURIOffline("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
 ### Successful Verification
