@@ -27,13 +27,22 @@ yarn add @vaxxnz/nzcp
 - [Node.js demo on REPL.it](https://replit.com/@noway1/NZCPjs-demo)
 - [React.js demo on CodeSandbox](https://codesandbox.io/s/nzcpjs-demo-4vjgb)
 
-## Usage
+## Online Usage
 
 ```javascript
 import { verifyPassURI } from "@vaxxnz/nzcp";
 
-// Verify a New Zealand COVID-19 Pass
+// Verify a New Zealand COVID-19 Pass, resolving the latest DID document according to the NZCP-spec
 const result = await verifyPassURI("NZCP:/1/2KCEVIQEIVVWK6...");
+```
+
+## Offline Usage
+
+```javascript
+import { verifyPassURI } from "@vaxxnz/nzcp";
+
+// Verify a New Zealand COVID-19 Pass, using the DID document saved from https://nzcp.identity.health.nz/.well-known/did.json for offline use
+const result = verifyPassUriOffline("NZCP:/1/2KCEVIQEIVVWK6...");
 ```
 
 ### Successful Verification
@@ -69,52 +78,62 @@ On **unsuccessful** verification of the given pass, the `verifyPassURI` method r
 ```
 
 
-### Verifying example COVID Passes
+### Advanced Usage
 
-To verify [example COVID Passes from the spec](https://nzcp.covid19.health.nz/#valid-worked-example), use `verifyPassURIWithTrustedIssuers` with the following parameters:
+These example show how to configure the library to supplier your own trusted issuers or DID documents. This will allow you to use the library with the [example COVID Passes from the spec](https://nzcp.covid19.health.nz/#valid-worked-example).
 
-```javascript
-import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
 
-// An array of trusted issuers for the example COVID Passes
-const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
-
-const result = await verifyPassURIWithTrustedIssuers(
-  "NZCP:/1/2KCEVIQEIVVWK6...",  // COVID-19 Pass to be verified
-  exampleTrustedIssuers         // Array of trusted issuers
-);
-```
-
-### Offline support
-
-For offline verification, you can use the `verifyPassURI` method with the following parameters:
+The following example shows how to use the example trusted issuer for online verification:
 
 ```javascript
-import { verifyPassURI } from "@vaxxnz/nzcp";
-import liveDIDDocument from "./liveDIDDocument.json"
+import { verifyPassURI, TRUSTED_ISSUERS } from "@vaxxnz/nzcp";
+
+// Trusted issuer for the example COVID Passes
+const exampleTrustedIssuer = TRUSTED_ISSUERS.MOH_EXAMPLE; // "did:web:nzcp.covid19.health.nz"
+
+// Alternatively you could supply a trusted issuer yourself
+// Passing in the live trusted issuer is the default behavior
+const liveTrustedIssuer = TRUSTED_ISSUERS.MOH_LIVE;       // "did:web:nzcp.identity.health.nz"
 
 const result = await verifyPassURI(
-  "NZCP:/1/2KCEVIQEIVVWK6...",
-  [liveDIDDocument]             // Array of DID documents accessible offline
+  "NZCP:/1/2KCEVIQEIVVWK6...",            // COVID-19 Pass to be verified
+  { trustedIssuer: exampleTrustedIssuer } // Supply your own trusted issuer to overwrite the default
 );
 ```
 
-Or `verifyPassURIWithTrustedIssuers` with the following parameters:
+The following example shows how use the example DID document for offline verification:
 
 ```javascript
-import { verifyPassURIWithTrustedIssuers } from "@vaxxnz/nzcp";
-import exampleDIDDocument from "./exampleDIDDocument.json"
+import { verifyPassURIOffline, DID_DOCUMENTS } from "@vaxxnz/nzcp";
 
-const exampleTrustedIssuers = ["did:web:nzcp.covid19.health.nz"];
+// DID Document for the example COVID Passes
+const exampleDIDDocument = DID_DOCUMENTS.MOH_EXAMPLE;   // Hard coded from https://nzcp.covid19.health.nz/.well-known/did.json
 
-const result = await verifyPassURIWithTrustedIssuers(
-  "NZCP:/1/2KCEVIQEIVVWK6...",
-  exampleTrustedIssuers,
-  [exampleDIDDocument]        // Array of DID documents accessible offline
+// Alternatively you could supply a DID document yourself
+// Passing in the live DID Document is the default behavior
+const liveTrustedIssuer = DID_DOCUMENTS.MOH_LIVE;       // Hard coded from https://nzcp.identity.health.nz/.well-known/did.json
+
+const result = verifyPassURIOffline(
+  "NZCP:/1/2KCEVIQEIVVWK6...",          // COVID-19 Pass to be verified
+  { didDocument: exampleDIDDocument }   // Supply your own DID document to overwrite the default
 );
 ```
 
-Where `liveDIDDocument` or `exampleDIDDocument` are the DID documents you saved for offline use.
+## Online VS Offline
+
+Currently for NodeJS/React Native project we recomend using `verifyPassURI` and for browser based application to use `verifyPassURIOffline`.
+
+The difference between the `verifyPassURI` and `verifyPassURIOffline` interfaces is:
+ - `verifyPassURI`: This will resolve the DID document (which contains the Ministry of Health public key) from the web according to https://nzcp.covid19.health.nz/#ref:DID-CORE and then validate the DID document is from the MoH trusted issuer.
+ - `verifyPassURIOffline`: This will use a prefetched version of https://nzcp.identity.health.nz/.well-known/did.json to verify against
+
+There is a CORS policy on https://nzcp.identity.health.nz/.well-known/did.json which makes it currently unable to be fetched from the browser. The only option for browser based verifiers is currently to use the `verifyPassURIOffline` function. The Ministry Of Health is aware of this issue and is working to resolve it.
+
+Offline scanners or scanners opperating in poor network conditions will also need to use `verifyPassURIOffline`. Since `verifyPassURI` requires a internet connection to resolve the DID document.
+
+NZCP-JS has decided to support both use cases but which one to use is a decision that a user of this library is best position to make. If you have a network connection and want to be completely correct (and to specification) use `verifyPassURI`. If you want speed, don't have a network connection or don't mind using a cached DID document, use `verifyPassURIOffline`.
+
+If you want to supply your own trusted issuer or DID document parameters, you can follow the Advanced Usage guide above.
 
 ## Support
 
