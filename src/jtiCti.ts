@@ -1,21 +1,19 @@
-import { JTIResult } from "./generalTypes";
+import { Violation } from "./violation";
 
 // Section 2.1.1
 // Decode CTI to JTI. Conforms to RFC4122
 // https://nzcp.covid19.health.nz/#mapping-jti-cti
-export function decodeCtiToJti(rawCti: Buffer): JTIResult {
+export function decodeCtiToJti(rawCti: Buffer): string {
   // Section 2.1.1.10.1
   // Parse the 16 byte value and convert to hexadecimal form
   if (rawCti.length !== 16) {
-    return {
-      success: false,
+    throw new Violation({
       violates: {
         message: `CTI must be 16 octets, but was ${rawCti.length} octets.`,
         section: "RFC4122.4.1",
         link: "https://datatracker.ietf.org/doc/html/rfc4122#section-4.1",
       },
-      jti: null,
-    };
+    });
   }
   const hexUuid = rawCti.toString("hex");
 
@@ -51,5 +49,5 @@ export function decodeCtiToJti(rawCti: Buffer): JTIResult {
   // Section 2.1.1.10.3
   // Prepend the prefix of urn:uuid to the result obtained
   const jti = `urn:uuid:${uuid}`;
-  return { success: true, violates: null, jti };
+  return jti
 }
