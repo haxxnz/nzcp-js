@@ -4,6 +4,7 @@ export interface Violates {
   message: string;
   section: string;
   link: string;
+  friendlyMessage?: string;
 }
 
 export type VerificationResult =
