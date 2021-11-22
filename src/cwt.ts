@@ -81,7 +81,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
         message: "CWT Token ID claim MUST be present",
         section: "2.1.0.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -96,7 +96,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
         message: "Issuer claim MUST be present",
         section: "2.1.0.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -111,7 +111,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.3.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -127,7 +127,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "Not Before claim MUST be present and MUST be a timestamp encoded as an integer in the NumericDate format (as specified in [RFC8392] section 2)",
         section: "2.1.0.4.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -142,7 +142,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "The current datetime is after or equal to the value of the `nbf` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
         section: "2.1.0.3.3",
-        friendlyMessage: "The Covid Pass is not yet activated."
+        description: "The COVID Pass is not yet activated."
       },
     });
   }
@@ -156,7 +156,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
         message: "The current datetime is before the value of the `exp` claim",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
         section: "2.1.0.4.3",
-        friendlyMessage: "The Covid Pass has expired."
+        description: "The COVID Pass has expired."
       },
     });
   }
@@ -171,7 +171,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
         message: "Verifiable Credential CWT claim MUST be present",
         section: "2.1.0.5.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -196,7 +196,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "Verifiable Credential JSON-LD Context property doesn't conform to New Zealand COVID Pass example",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.2",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -222,7 +222,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "Verifiable Credential Type property doesn't conform to New Zealand COVID Pass example",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.5",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -237,7 +237,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
         message: "Verifiable Credential Version property MUST be 1.0.0",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.8",
-        friendlyMessage: "The QR code is not a valid NZ COVID Pass."
+        description: "The QR code is not a valid NZ COVID Pass."
       },
     });
   }
@@ -252,7 +252,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           message: "Missing REQUIRED 'givenName' in credentialSubject property",
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.1",
-          friendlyMessage: "\"Given Name\" missing from NZ COVID Pass."
+          description: "\"Given Name\" missing from NZ COVID Pass."
         },
       });
     }
@@ -262,7 +262,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           message: "Missing REQUIRED 'dob' in credentialSubject property",
           link: "https://nzcp.covid19.health.nz/#publiccovidpass",
           section: "2.4.1.2.2",
-          friendlyMessage: "\"Date of Birth\" missing from NZ COVID Pass."
+          description: "\"Date of Birth\" missing from NZ COVID Pass."
         },
       });
     }
@@ -273,7 +273,7 @@ export function validateCWTClaims(cwtClaims: UnvalidatedCWTClaims): CWTClaims {
           "Verifiable Credential Credential Subject property MUST be present",
         link: "https://nzcp.covid19.health.nz/#verifiable-credential-claim-structure",
         section: "2.3.9",
-        friendlyMessage: "The Covid Pass is malformed or has been modified."
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
