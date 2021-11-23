@@ -8,12 +8,10 @@ export function decodeCtiToJti(rawCti: Buffer): string {
   // Parse the 16 byte value and convert to hexadecimal form
   if (rawCti.length !== 16) {
     throw new Violation({
-      violates: {
-        message: `CTI must be 16 octets, but was ${rawCti.length} octets.`,
-        section: "RFC4122.4.1",
-        link: "https://datatracker.ietf.org/doc/html/rfc4122#section-4.1",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: `CTI must be 16 octets, but was ${rawCti.length} octets.`,
+      section: "RFC4122.4.1",
+      link: "https://datatracker.ietf.org/doc/html/rfc4122#section-4.1",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   const hexUuid = rawCti.toString("hex");
@@ -50,5 +48,5 @@ export function decodeCtiToJti(rawCti: Buffer): string {
   // Section 2.1.1.10.3
   // Prepend the prefix of urn:uuid to the result obtained
   const jti = `urn:uuid:${uuid}`;
-  return jti
+  return jti;
 }

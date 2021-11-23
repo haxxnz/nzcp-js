@@ -148,6 +148,10 @@ NZCP.js has decided to support both use cases but which one to use is a decision
 
 If you want to supply your own trusted issuer or DID document parameters, you can follow the Advanced Usage guide above.
 
+## React Native
+
+The library runs well with a few polyfills. An example of which polyfills you might have to set up [can be found here](https://github.com/vaxxnz/nzcp-js/issues/2#issuecomment-972808289).
+
 ## Support
 
 See something that can be improved? [Report an Issue](https://github.com/vaxxnz/nzcp-js/issues) or contact us to [report a security concern](mailto:info@vaxx.nz).
