@@ -80,6 +80,7 @@ On **unsuccessful** verification of the given pass, the `verifyPassURI` method r
     "message": "Error..",     // Friendly Error Message
     "section": "0.0",         // Section of official specs under violation
     "link": "https://..",     // Link to specifications breached
+    "description": "The QR.." // Simplified error message
   },
   "credentialSubject": null   // No pass holder data due to error
 }

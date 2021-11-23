@@ -169,6 +169,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
         message: "The payload of the QR Code MUST be a string",
         section: "4.3",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -183,6 +184,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
           "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
         section: "4.4",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        description: "The QR code is not a valid NZ COVID Pass"
       },
     });
   }
@@ -198,6 +200,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
           "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
         section: "4.5",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        description: "The QR code is not a valid NZ COVID Pass"
       },
     });
   }
@@ -214,6 +217,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
           "The version-identifier portion of the payload for the specification MUST be 1",
         section: "4.6",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        description: "The QR code is not a valid NZ COVID Pass"
       },
     });
   }
@@ -235,6 +239,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
         message: "The payload of the QR Code MUST be base32 encoded",
         section: "4.7",
         link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -288,6 +293,7 @@ const getCWTHeaders = (
           "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
         section: "2.2.1.1",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -300,6 +306,7 @@ const getCWTHeaders = (
           "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
         section: "2.2.2.2",
         link: "https://nzcp.covid19.health.nz/#cwt-headers",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -330,6 +337,7 @@ const getIss = (
         message: "Issuer claim MUST be present",
         section: "2.1.0.2.1",
         link: "https://nzcp.covid19.health.nz/#cwt-claims",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -344,6 +352,7 @@ const getIss = (
           "`iss` value reported in the pass does not match one listed in the trusted issuers",
         link: "https://nzcp.covid19.health.nz/#trusted-issuers",
         section: "6.3",
+        description: "The COVID Pass was not issued by a trusted issuer"
       },
     });
   }
@@ -368,6 +377,7 @@ const getCredentialSubject = (
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
         link: "https://nzcp.covid19.health.nz/#did-document",
         section: "5.1.1",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -382,6 +392,7 @@ const getCredentialSubject = (
           "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
         link: "https://nzcp.covid19.health.nz/#did-document",
         section: "5.1.1",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -393,6 +404,7 @@ const getCredentialSubject = (
           "No matching verificationMethod method for the assertionMethod",
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
         section: "DID-CORE.2",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -405,6 +417,7 @@ const getCredentialSubject = (
         message: "No matching verificationMethod for the assertionMethod",
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
         section: "DID-CORE.2",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -422,6 +435,7 @@ const getCredentialSubject = (
           "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
         link: "https://nzcp.covid19.health.nz/#did-document",
         section: "5.1.2",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -435,6 +449,7 @@ const getCredentialSubject = (
           "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
         link: "https://nzcp.covid19.health.nz/#did-document",
         section: "5.1.3",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -452,6 +467,7 @@ const getCredentialSubject = (
           "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
         link: "https://nzcp.covid19.health.nz/#did-document",
         section: "5.1.5",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
@@ -472,6 +488,7 @@ const getCredentialSubject = (
           "Retrieved public key does not validate `COSE_Sign1` structure",
         link: "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
         section: "3",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }

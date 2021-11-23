@@ -12,6 +12,7 @@ export function decodeCtiToJti(rawCti: Buffer): string {
         message: `CTI must be 16 octets, but was ${rawCti.length} octets.`,
         section: "RFC4122.4.1",
         link: "https://datatracker.ietf.org/doc/html/rfc4122#section-4.1",
+        description: "The COVID Pass is malformed or has been modified."
       },
     });
   }
