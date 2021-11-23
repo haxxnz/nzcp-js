@@ -50,5 +50,5 @@ export function decodeCtiToJti(rawCti: Buffer): string {
   // Section 2.1.1.10.3
   // Prepend the prefix of urn:uuid to the result obtained
   const jti = `urn:uuid:${uuid}`;
-  return jti
+  return jti;
 }

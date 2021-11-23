@@ -24,11 +24,10 @@ const DID_DOCUMENTS = {
 const TRUSTED_ISSUERS = {
   MOH_LIVE: "did:web:nzcp.identity.health.nz",
   MOH_EXAMPLE: "did:web:nzcp.covid19.health.nz",
-}
+};
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
-
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 export { DID_DOCUMENTS, TRUSTED_ISSUERS };
@@ -50,7 +49,9 @@ export const verifyPassURIOffline = (
       : [DID_DOCUMENTS.MOH_LIVE as DIDDocument];
 
   // by default trust whatever issuers you specify in didDocuments
-  const defaultTrustedIssuers = didDocuments.map(didDocument => didDocument.id);
+  const defaultTrustedIssuers = didDocuments.map(
+    (didDocument) => didDocument.id
+  );
 
   const trustedIssuers =
     options && options.trustedIssuer
@@ -496,5 +497,5 @@ const getCredentialSubject = (
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
   const validatedCwtClaims = validateCWTClaims(cwtClaims);
-  return validatedCwtClaims.vc.credentialSubject
+  return validatedCwtClaims.vc.credentialSubject;
 };
