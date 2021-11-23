@@ -180,7 +180,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
         "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
       section: "4.4",
       link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-      description: "The QR code is not a valid NZ COVID Pass",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -194,7 +194,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
         "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
       section: "4.5",
       link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-      description: "The QR code is not a valid NZ COVID Pass",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -209,7 +209,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
         "The version-identifier portion of the payload for the specification MUST be 1",
       section: "4.6",
       link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-      description: "The QR code is not a valid NZ COVID Pass",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -334,7 +334,7 @@ const getIss = (
         "`iss` value reported in the pass does not match one listed in the trusted issuers",
       link: "https://nzcp.covid19.health.nz/#trusted-issuers",
       section: "6.3",
-      description: "The COVID Pass was not issued by a trusted issuer",
+      description: "The COVID Pass was not issued by a trusted issuer.",
     });
   }
   return iss;
