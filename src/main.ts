@@ -126,7 +126,7 @@ export const verifyPassURI = async (
         message: didResult.didResolutionMetadata.error,
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
         section: "DID-CORE.1",
-        description: "Could not resolve trusted issuer."
+        description: "Could not resolve trusted issuer.",
       });
     }
 
