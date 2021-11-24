@@ -80,14 +80,20 @@ export const verifyPassURIOffline = (
     };
   } catch (err) {
     const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
+    if ("violates" in error) {
+      const violation = error as Violation;
+      return {
+        success: false,
+        violates: violation.violates,
+        credentialSubject: violation.credentialSubject,
+      };
+    } else {
+      return {
+        success: false,
+        violates: { message: err.message, section: "unknown", link: "" },
+        credentialSubject: null,
+      };
+    }
   }
 };
 
@@ -120,7 +126,7 @@ export const verifyPassURI = async (
         message: didResult.didResolutionMetadata.error,
         link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
         section: "DID-CORE.1",
-        description: "Could not resolve trusted issuer."
+        description: "Could not resolve trusted issuer.",
       });
     }
 
@@ -138,14 +144,20 @@ export const verifyPassURI = async (
     };
   } catch (err) {
     const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
+    if ("violates" in error) {
+      const violation = error as Violation;
+      return {
+        success: false,
+        violates: violation.violates,
+        credentialSubject: violation.credentialSubject,
+      };
+    } else {
+      return {
+        success: false,
+        violates: { message: err.message, section: "unknown", link: "" },
+        credentialSubject: null,
+      };
+    }
   }
 };
 
@@ -459,6 +471,17 @@ const getCredentialSubject = (
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const validatedCwtClaims = validateCWTClaims(cwtClaims);
-  return validatedCwtClaims.vc.credentialSubject;
+  try {
+    const validatedCwtClaims = validateCWTClaims(cwtClaims);
+    return validatedCwtClaims.vc.credentialSubject;
+  } catch (e) {
+    if ("violates" in e) {
+      throw new Violation(
+        (e as Violation).violates,
+        cwtClaims.vc?.credentialSubject
+      );
+    } else {
+      throw e;
+    }
+  }
 };

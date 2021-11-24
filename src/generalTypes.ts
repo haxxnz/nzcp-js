@@ -9,4 +9,4 @@ export interface Violates {
 
 export type VerificationResult =
   | { success: true; violates: null; credentialSubject: CredentialSubject }
-  | { success: false; violates: Violates; credentialSubject: null };
+  | { success: false; violates: Violates; credentialSubject: CredentialSubject | null };
