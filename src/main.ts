@@ -475,9 +475,13 @@ const getCredentialSubject = (
     const validatedCwtClaims = validateCWTClaims(cwtClaims);
     return validatedCwtClaims.vc.credentialSubject;
   } catch (e) {
-    throw new Violation(
-      (e as Violation).violates,
-      cwtClaims.vc?.credentialSubject
-    );
+    if ("violates" in e) {
+      throw new Violation(
+        (e as Violation).violates,
+        cwtClaims.vc?.credentialSubject
+      );
+    } else {
+      throw e;
+    }
   }
 };
