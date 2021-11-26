@@ -8,5 +8,5 @@ export interface Violates {
 }
 
 export type VerificationResult =
-  | { success: true; violates: null; credentialSubject: CredentialSubject }
+  | { success: true; violates: null; exp: number | null; nbf: number | null; credentialSubject: CredentialSubject }
   | { success: false; violates: Violates; credentialSubject: null };
