@@ -61,6 +61,8 @@ On **successful** verification of the given pass, the `verifyPassURI` method ret
 {
   "success": true,            // Verification Outcome
   "violates": null,           // Error object if code is invalid
+  "exp": 1652702400,          // Expiration date
+  "nbf": 1637060400,          // Not valid before date
   "credentialSubject": {      // Pass holder's details
     "givenName": "Emily",     // Pass holder's given name
     "familyName": "Example",  // Pass holder's family name
