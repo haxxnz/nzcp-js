@@ -27,6 +27,7 @@ yarn add @vaxxnz/nzcp
 This library is current used in
 
 - [Vaxxed.as](https://vaxxed.as) An offline NZ COVID Pass verifier by @rafcontreras
+- [Hello Club](https://helloclub.com) A club and member management platform with self verification of vaccination status
 
 ## Demo
 
