@@ -64,7 +64,7 @@ On **successful** verification of the given pass, the `verifyPassURI` method ret
   "credentialSubject": {      // Pass holder's details
     "givenName": "Emily",     // Pass holder's given name
     "familyName": "Example",  // Pass holder's family name
-    "dob": "01/01/1970"       // Pass holder's date of birth
+    "dob": "1970-01-01"       // Pass holder's date of birth
   }
 }
 ```
