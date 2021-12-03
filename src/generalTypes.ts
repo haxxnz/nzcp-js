@@ -8,5 +8,5 @@ export interface Violates {
 }
 
 export type VerificationResult =
-  | { success: true; violates: null; expires: number | null; validFrom: number | null; credentialSubject: CredentialSubject; raw: CWTClaims | Partial<CWTClaims> }
-  | { success: false; violates: Violates; credentialSubject: null };
+  | { success: true; violates: null; expires: Date | undefined; validFrom: Date | undefined; credentialSubject: CredentialSubject; raw: CWTClaims | Partial<CWTClaims> }
+  | { success: false; violates: Violates; credentialSubject: null; };
