@@ -61,12 +61,24 @@ On **successful** verification of the given pass, the `verifyPassURI` method ret
 {
   "success": true,            // Verification Outcome
   "violates": null,           // Error object if code is invalid
-  "exp": 1652702400,          // Expiration date
-  "nbf": 1637060400,          // Not valid before date
+  "expires": 1635883530,      // Expiration date
+  "validFrom": 1951416330,    // date when pass becomes valid
   "credentialSubject": {      // Pass holder's details
     "givenName": "Emily",     // Pass holder's given name
     "familyName": "Example",  // Pass holder's family name
     "dob": "01/01/1970"       // Pass holder's date of birth
+  },
+  "raw": {                    // raw data returned by CWTClaims
+    "jti": "urn:uuid:...",
+    "iss": "did:web:nzcp.identity.health.nz",
+    "nbf": 1635883530,
+    "exp": 1951416330,
+    "vc": {
+      '@context': [ ... ],
+      "version": '1.0.0',
+      "type": [ ... ],
+      "credentialSubject": { ... }
+    }
   }
 }
 ```
