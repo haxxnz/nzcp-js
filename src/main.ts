@@ -75,9 +75,10 @@ export const verifyPassURIOffline = (
     return {
       success: true,
       violates: null,
-      exp: cwtClaims.exp ? cwtClaims.exp : null,
-      nbf: cwtClaims.nbf ? cwtClaims.nbf : null,
+      expires:  cwtClaims.exp ? cwtClaims.exp : null,
+      validFrom: cwtClaims.nbf ? cwtClaims.nbf : null,
       credentialSubject,
+      raw: cwtClaims
     };
   } catch (err) {
     const error = err as Error;
@@ -136,9 +137,10 @@ export const verifyPassURI = async (
     return {
       success: true,
       violates: null,
-      exp:  cwtClaims.exp ? cwtClaims.exp : null,
-      nbf: cwtClaims.nbf ? cwtClaims.nbf : null,
+      expires:  cwtClaims.exp ? cwtClaims.exp : null,
+      validFrom: cwtClaims.nbf ? cwtClaims.nbf : null,
       credentialSubject,
+      raw: cwtClaims
     };
   } catch (err) {
     const error = err as Error;
