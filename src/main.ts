@@ -75,8 +75,8 @@ export const verifyPassURIOffline = (
     return {
       success: true,
       violates: null,
-      expires:  cwtClaims.exp ? cwtClaims.exp : null,
-      validFrom: cwtClaims.nbf ? cwtClaims.nbf : null,
+      expires:  cwtClaims.exp ? new Date(cwtClaims.exp): undefined,
+      validFrom: cwtClaims.nbf ? new Date(cwtClaims.nbf): undefined,
       credentialSubject,
       raw: cwtClaims
     };
@@ -137,8 +137,8 @@ export const verifyPassURI = async (
     return {
       success: true,
       violates: null,
-      expires:  cwtClaims.exp ? cwtClaims.exp : null,
-      validFrom: cwtClaims.nbf ? cwtClaims.nbf : null,
+      expires:  cwtClaims.exp ? new Date(cwtClaims.exp * 1000): undefined,
+      validFrom: cwtClaims.nbf ? new Date(cwtClaims.nbf * 1000): undefined,
       credentialSubject,
       raw: cwtClaims
     };
