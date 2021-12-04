@@ -11,6 +11,10 @@ async function main() {
     platform: "browser",
     format: "cjs",
     target: "es6",
+    define: {
+      "process.env.NODE_DEBUG": "false",
+      "global": "window"
+    },
   });
   console.log("resultBrowser", resultBrowser);
 

@@ -7,11 +7,11 @@ const EC = elliptic.ec;
 const ec = new EC("p256");
 
 export function validateCOSESignature(
-  cosePayload: DecodedCOSEStructure,
+  decodedCOSEStructure: DecodedCOSEStructure,
   publicKeyJwt: JsonWebKey
 ): boolean {
   // protected is a typescript keyword
-  const [protected_, , payload_, signature_] = cosePayload.value;
+  const [protected_, , payload_, signature_] = decodedCOSEStructure.value;
 
   // verified at a earlier point...
   if (!publicKeyJwt.x || !publicKeyJwt.y) {
