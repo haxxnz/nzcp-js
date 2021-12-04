@@ -26,6 +26,9 @@ test("Valid pass is successful", async () => {
   expect(result.credentialSubject?.givenName).toBe("Jack");
   expect(result.credentialSubject?.familyName).toBe("Sparrow");
   expect(result.credentialSubject?.dob).toBe("1960-04-16");
+  expect(result.expires).toStrictEqual(new Date("2031-11-02T20:05:30.000Z"));
+  expect(result.validFrom).toStrictEqual(new Date("2021-11-02T20:05:30.000Z"));
+  expect(result.raw).toBeTruthy()
 });
 
 // https://nzcp.covid19.health.nz/#bad-public-key
@@ -82,6 +85,9 @@ test("Expired Pass is unsuccessful", async () => {
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.4.3");
   expect(result.credentialSubject?.dob).toBeTruthy()
+  expect(result.expires).toStrictEqual(new Date("2021-10-26T20:05:31.000Z"));
+  expect(result.validFrom).toStrictEqual(new Date("2020-11-02T20:05:31.000Z"));
+  expect(result.raw).toBeTruthy()
 });
 
 // https://nzcp.covid19.health.nz/#not-active-pass
@@ -94,6 +100,9 @@ test("Not Active pass is unsuccessful", async () => {
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.3.3");
   expect(result.credentialSubject?.dob).toBeTruthy()
+  expect(result.expires).toStrictEqual(new Date("2027-11-02T20:05:31.000Z"));
+  expect(result.validFrom).toStrictEqual(new Date("2026-11-02T20:05:31.000Z"));
+  expect(result.raw).toBeTruthy()
 });
 
 // Custom Test: non base-32 string in the payload
@@ -126,6 +135,9 @@ test("Valid pass is successful with BYO DID document", async () => {
   expect(result.credentialSubject?.givenName).toBe("Jack");
   expect(result.credentialSubject?.familyName).toBe("Sparrow");
   expect(result.credentialSubject?.dob).toBe("1960-04-16");
+  expect(result.expires).toStrictEqual(new Date("2031-11-02T20:05:30.000Z"));
+  expect(result.validFrom).toStrictEqual(new Date("2021-11-02T20:05:30.000Z"));
+  expect(result.raw).toBeTruthy()
 });
 const LIVE_PASS = process.env.LIVE_COVID_PASS_URI as string
 

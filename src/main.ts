@@ -5,7 +5,7 @@ import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
 import { VerificationResult, Violates } from "./generalTypes";
 import { decodeCBOR } from "./cbor";
-import { CredentialSubject, CWTClaims, CWTHeaders } from "./cwtTypes";
+import { CredentialSubject, CWTClaims, CWTHeaders, UnvalidatedCWTClaims } from "./cwtTypes";
 import { DIDDocument } from "did-resolver";
 import exampleDIDDocument from "./exampleDIDDocument.json";
 import liveDIDDocument from "./liveDIDDocument.json";
@@ -63,35 +63,45 @@ export const verifyPassURIOffline = (
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
     const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
-    const cwtClaims = getCWTClaims(decodedCOSEStructure);
-    const iss = getIss(cwtClaims, trustedIssuers);
+    const unvalidatedCWtClaims = getUnvalidatedCWTClaims(decodedCOSEStructure);
+    const iss = getIss(unvalidatedCWtClaims, trustedIssuers);
     const didDocument = didDocuments.find((d) => d.id === iss) ?? null;
-    const credentialSubject = getCredentialSubject(
+    const cwtClaims = getCWTClaims(
       iss,
       cwtHeaders,
-      cwtClaims,
+      unvalidatedCWtClaims,
       didDocument,
       decodedCOSEStructure
     );
     return {
       success: true,
       violates: null,
-      credentialSubject,
+      expires: new Date(cwtClaims.exp * 1000),
+      validFrom: new Date(cwtClaims.nbf * 1000),
+      credentialSubject: cwtClaims.vc.credentialSubject,
+      raw: cwtClaims,
     };
   } catch (err) {
     const error = err as Error;
     if ("violates" in error) {
       const violation = error as Violation;
+      const cwtClaims = violation.cwtClaims;
       return {
         success: false,
         violates: violation.violates,
-        credentialSubject: violation.credentialSubject,
+        expires: cwtClaims?.exp ? new Date(cwtClaims?.exp * 1000) : null,
+        validFrom: cwtClaims?.nbf ? new Date(cwtClaims?.nbf * 1000) : null,
+        credentialSubject: cwtClaims?.vc?.credentialSubject ?? null,
+        raw: cwtClaims,
       };
     } else {
       return {
         success: false,
         violates: { message: err.message, section: "unknown", link: "" },
+        expires: null,
+        validFrom: null,
         credentialSubject: null,
+        raw: null,
       };
     }
   }
@@ -115,8 +125,8 @@ export const verifyPassURI = async (
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
     const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
-    const cwtClaims = getCWTClaims(decodedCOSEStructure);
-    const iss = getIss(cwtClaims, trustedIssuers);
+    const unvalidatedCWTClaims = getUnvalidatedCWTClaims(decodedCOSEStructure);
+    const iss = getIss(unvalidatedCWTClaims, trustedIssuers);
 
     const didResult = await did.resolve(iss);
     if (didResult.didResolutionMetadata.error) {
@@ -130,32 +140,42 @@ export const verifyPassURI = async (
       });
     }
 
-    const credentialSubject = getCredentialSubject(
+    const cwtClaims = getCWTClaims(
       iss,
       cwtHeaders,
-      cwtClaims,
+      unvalidatedCWTClaims,
       didResult.didDocument,
       decodedCOSEStructure
     );
     return {
       success: true,
       violates: null,
-      credentialSubject,
+      expires: new Date(cwtClaims.exp * 1000),
+      validFrom: new Date(cwtClaims.nbf * 1000),
+      credentialSubject: cwtClaims.vc.credentialSubject,
+      raw: cwtClaims,
     };
   } catch (err) {
     const error = err as Error;
     if ("violates" in error) {
       const violation = error as Violation;
+      const cwtClaims = violation.cwtClaims;
       return {
         success: false,
         violates: violation.violates,
-        credentialSubject: violation.credentialSubject,
+        expires: cwtClaims?.exp ? new Date(cwtClaims?.exp * 1000) : null,
+        validFrom: cwtClaims?.nbf ? new Date(cwtClaims?.nbf * 1000) : null,
+        credentialSubject: cwtClaims?.vc?.credentialSubject ?? null,
+        raw: cwtClaims,
       };
     } else {
       return {
         success: false,
         violates: { message: err.message, section: "unknown", link: "" },
+        expires: null,
+        validFrom: null,
         credentialSubject: null,
+        raw: null,
       };
     }
   }
@@ -310,9 +330,9 @@ const getCWTHeaders = (
   }
   return cwtHeaders;
 };
-const getCWTClaims = (
+const getUnvalidatedCWTClaims = (
   decodedCOSEStructure: DecodedCOSEStructure
-): Partial<CWTClaims> => {
+): UnvalidatedCWTClaims => {
   const rawCWTClaims = decodeCBOR(
     decodedCOSEStructure.value[2] as Buffer
   ) as Map<number | string, string | number | Buffer | unknown>;
@@ -322,10 +342,10 @@ const getCWTClaims = (
 };
 
 const getIss = (
-  cwtClaims: Partial<CWTClaims>,
+  unvalidatedCWTClaims: UnvalidatedCWTClaims,
   trustedIssuers: string[]
 ): string => {
-  const iss = cwtClaims.iss;
+  const iss = unvalidatedCWTClaims.iss;
 
   // Section 2.1.0.2.1
   // Issuer claim MUST be present
@@ -353,13 +373,13 @@ const getIss = (
   return iss;
 };
 
-const getCredentialSubject = (
+const getCWTClaims = (
   iss: string,
   cwtHeaders: Partial<CWTHeaders>,
-  cwtClaims: Partial<CWTClaims>,
+  unvalidatedCWTClaims: UnvalidatedCWTClaims,
   didDocument: DIDDocument | null,
   decodedCOSEStructure: DecodedCOSEStructure
-): CredentialSubject => {
+): CWTClaims => {
   const absoluteKeyReference = `${iss}#${cwtHeaders.kid}`;
 
   // 5.1.1
@@ -472,13 +492,13 @@ const getCredentialSubject = (
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
   try {
-    const validatedCwtClaims = validateCWTClaims(cwtClaims);
-    return validatedCwtClaims.vc.credentialSubject;
+    const validatedCwtClaims = validateCWTClaims(unvalidatedCWTClaims);
+    return validatedCwtClaims;
   } catch (e) {
     if ("violates" in e) {
       throw new Violation(
         (e as Violation).violates,
-        cwtClaims.vc?.credentialSubject
+        unvalidatedCWTClaims
       );
     } else {
       throw e;
