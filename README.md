@@ -97,7 +97,10 @@ On **unsuccessful** verification of the given pass, the `verifyPassURI` method r
     "link": "https://..",     // Link to specifications breached
     "description": "The QR.." // Simplified error message
   },
+  "expires": null,            // Nothing due to error
+  "validFrom": null,          // Nothing due to error
   "credentialSubject": null   // No pass holder data due to error
+  "raw": null                 // No raw data due to error
 }
 ```
 
