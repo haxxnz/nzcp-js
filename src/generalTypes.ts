@@ -1,4 +1,4 @@
-import { CredentialSubject, CWTClaims } from "./cwtTypes";
+import { CredentialSubject, CWTClaims, UnvalidatedCWTClaims } from "./cwtTypes";
 
 export interface Violates {
   message: string;
@@ -8,5 +8,5 @@ export interface Violates {
 }
 
 export type VerificationResult =
-  | { success: true; violates: null; expires: Date | undefined; validFrom: Date | undefined; credentialSubject: CredentialSubject; raw: CWTClaims | Partial<CWTClaims> }
-  | { success: false; violates: Violates; credentialSubject: CredentialSubject | null; };
+  | { success: true; violates: null; expires: Date; validFrom: Date; credentialSubject: CredentialSubject; raw: CWTClaims }
+  | { success: false; violates: Violates; expires: Date | null; validFrom: Date | null; credentialSubject: CredentialSubject | null; raw: UnvalidatedCWTClaims | null };
