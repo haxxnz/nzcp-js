@@ -27,6 +27,7 @@ yarn add @vaxxnz/nzcp
 This library is current used in
 
 - [Vaxxed.as](https://vaxxed.as) An offline NZ COVID Pass verifier by @rafcontreras
+- [Hello Club](https://helloclub.com) A club and member management platform with self verification of vaccination status
 
 ## Demo
 
@@ -66,7 +67,7 @@ On **successful** verification of the given pass, the `verifyPassURI` method ret
   "credentialSubject": {                 // Pass holder's details
     "givenName": "Emily",                // Pass holder's given name
     "familyName": "Example",             // Pass holder's family name
-    "dob": "01/01/1970"                  // Pass holder's date of birth
+    "dob": "1970-01-01"                  // Pass holder's date of birth
   },           
   "raw": {                               // raw data returned by CWTClaims
     "jti": "urn:uuid:...",
@@ -161,6 +162,10 @@ Offline scanners or scanners opperating in poor network conditions will also nee
 NZCP.js has decided to support both use cases but which one to use is a decision that the user of this library is in the best position to make. If you have a network connection and want to be completely correct (and to specification) use `verifyPassURI`. If you want speed, don't have a network connection or don't mind using a prefetched DID document, use `verifyPassURIOffline`.
 
 If you want to supply your own trusted issuer or DID document parameters, you can follow the Advanced Usage guide above.
+
+## React Native
+
+The library runs well with a few polyfills. An example of which polyfills you might have to set up [can be found here](https://github.com/vaxxnz/nzcp-js/issues/2#issuecomment-972808289).
 
 ## Support
 

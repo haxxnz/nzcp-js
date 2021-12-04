@@ -24,11 +24,10 @@ const DID_DOCUMENTS = {
 const TRUSTED_ISSUERS = {
   MOH_LIVE: "did:web:nzcp.identity.health.nz",
   MOH_EXAMPLE: "did:web:nzcp.covid19.health.nz",
-}
+};
 
 // The function below implements v1 of NZ COVID Pass - Technical Specification
 // https://nzcp.covid19.health.nz/
-
 
 export { VerificationResult, CredentialSubject, Violates, DIDDocument };
 export { DID_DOCUMENTS, TRUSTED_ISSUERS };
@@ -50,7 +49,9 @@ export const verifyPassURIOffline = (
       : [DID_DOCUMENTS.MOH_LIVE as DIDDocument];
 
   // by default trust whatever issuers you specify in didDocuments
-  const defaultTrustedIssuers = didDocuments.map(didDocument => didDocument.id);
+  const defaultTrustedIssuers = didDocuments.map(
+    (didDocument) => didDocument.id
+  );
 
   const trustedIssuers =
     options && options.trustedIssuer
@@ -82,14 +83,20 @@ export const verifyPassURIOffline = (
     };
   } catch (err) {
     const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
+    if ("violates" in error) {
+      const violation = error as Violation;
+      return {
+        success: false,
+        violates: violation.violates,
+        credentialSubject: violation.credentialSubject,
+      };
+    } else {
+      return {
+        success: false,
+        violates: { message: err.message, section: "unknown", link: "" },
+        credentialSubject: null,
+      };
+    }
   }
 };
 
@@ -119,11 +126,10 @@ export const verifyPassURI = async (
       // an error came back from the offical DID reference implementation
       // this handles a bunch of clauses in https://nzcp.covid19.health.nz/#issuer-identifier
       throw new Violation({
-        violates: {
-          message: didResult.didResolutionMetadata.error,
-          link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-          section: "DID-CORE.1",
-        },
+        message: didResult.didResolutionMetadata.error,
+        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+        section: "DID-CORE.1",
+        description: "Could not resolve trusted issuer.",
       });
     }
 
@@ -144,14 +150,20 @@ export const verifyPassURI = async (
     };
   } catch (err) {
     const error = err as Error;
-    return {
-      success: false,
-      violates:
-        "violates" in error
-          ? (error as Violation).violates
-          : { message: err.message, section: "unknown", link: "" },
-      credentialSubject: null,
-    };
+    if ("violates" in error) {
+      const violation = error as Violation;
+      return {
+        success: false,
+        violates: violation.violates,
+        credentialSubject: violation.credentialSubject,
+      };
+    } else {
+      return {
+        success: false,
+        violates: { message: err.message, section: "unknown", link: "" },
+        credentialSubject: null,
+      };
+    }
   }
 };
 
@@ -171,12 +183,10 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   // QR code payload MUST be a string
   if (typeof uri !== "string") {
     throw new Violation({
-      violates: {
-        message: "The payload of the QR Code MUST be a string",
-        section: "4.3",
-        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "The payload of the QR Code MUST be a string",
+      section: "4.3",
+      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   // Section 4.4
@@ -185,13 +195,11 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   const payloadMatch = uri.match(payloadRegex);
   if (!payloadMatch) {
     throw new Violation({
-      violates: {
-        message:
-          "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
-        section: "4.4",
-        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        description: "The QR code is not a valid NZ COVID Pass"
-      },
+      message:
+        "The payload of the QR Code MUST be in the form `NZCP:/<version-identifier>/<base32-encoded-CWT>`",
+      section: "4.4",
+      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -201,13 +209,11 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   // Check if the payload received from the QR Code begins with the prefix NZCP:/, if it does not then fail.
   if (payloadPrefix !== "NZCP:/") {
     throw new Violation({
-      violates: {
-        message:
-          "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
-        section: "4.5",
-        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        description: "The QR code is not a valid NZ COVID Pass"
-      },
+      message:
+        "The payload of the QR Code MUST begin with the prefix of `NZCP:/`",
+      section: "4.5",
+      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -218,13 +224,11 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   // NOTE - for instance in this version of the specification this value MUST be 1.
   if (versionIdentifier !== "1") {
     throw new Violation({
-      violates: {
-        message:
-          "The version-identifier portion of the payload for the specification MUST be 1",
-        section: "4.6",
-        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        description: "The QR code is not a valid NZ COVID Pass"
-      },
+      message:
+        "The version-identifier portion of the payload for the specification MUST be 1",
+      section: "4.6",
+      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      description: "The QR code is not a valid NZ COVID Pass.",
     });
   }
 
@@ -241,12 +245,10 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
     );
   } catch (error) {
     throw new Violation({
-      violates: {
-        message: "The payload of the QR Code MUST be base32 encoded",
-        section: "4.7",
-        link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "The payload of the QR Code MUST be base32 encoded",
+      section: "4.7",
+      link: "https://nzcp.covid19.health.nz/#2d-barcode-encoding",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -294,26 +296,22 @@ const getCWTHeaders = (
     // pass
   } else {
     throw new Violation({
-      violates: {
-        message:
-          "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
-        section: "2.2.1.1",
-        link: "https://nzcp.covid19.health.nz/#cwt-headers",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "`kid` header MUST be present in the protected header section of the `COSE_Sign1` structure",
+      section: "2.2.1.1",
+      link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   if (cwtHeaders.alg === "ES256") {
     // pass
   } else {
     throw new Violation({
-      violates: {
-        message:
-          "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
-        section: "2.2.2.2",
-        link: "https://nzcp.covid19.health.nz/#cwt-headers",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "`alg` claim value MUST be present in the protected header section of the `COSE_Sign1` structure and MUST be set to the value corresponding to `ES256` algorithm registration",
+      section: "2.2.2.2",
+      link: "https://nzcp.covid19.health.nz/#cwt-headers",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   return cwtHeaders;
@@ -339,12 +337,10 @@ const getIss = (
   // Issuer claim MUST be present
   if (!iss) {
     throw new Violation({
-      violates: {
-        message: "Issuer claim MUST be present",
-        section: "2.1.0.2.1",
-        link: "https://nzcp.covid19.health.nz/#cwt-claims",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "Issuer claim MUST be present",
+      section: "2.1.0.2.1",
+      link: "https://nzcp.covid19.health.nz/#cwt-claims",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -353,13 +349,11 @@ const getIss = (
   // are we supporting other issuers?
   if (!trustedIssuers.includes(iss)) {
     throw new Violation({
-      violates: {
-        message:
-          "`iss` value reported in the pass does not match one listed in the trusted issuers",
-        link: "https://nzcp.covid19.health.nz/#trusted-issuers",
-        section: "6.3",
-        description: "The COVID Pass was not issued by a trusted issuer"
-      },
+      message:
+        "`iss` value reported in the pass does not match one listed in the trusted issuers",
+      link: "https://nzcp.covid19.health.nz/#trusted-issuers",
+      section: "6.3",
+      description: "The COVID Pass was not issued by a trusted issuer.",
     });
   }
   return iss;
@@ -378,13 +372,11 @@ const getCredentialSubject = (
   // The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.
   if (!didDocument?.assertionMethod) {
     throw new Violation({
-      violates: {
-        message:
-          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
-        link: "https://nzcp.covid19.health.nz/#did-document",
-        section: "5.1.1",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+      link: "https://nzcp.covid19.health.nz/#did-document",
+      section: "5.1.1",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   let assertionMethod = didDocument.assertionMethod;
@@ -393,25 +385,20 @@ const getCredentialSubject = (
   }
   if (!assertionMethod.includes(absoluteKeyReference)) {
     throw new Violation({
-      violates: {
-        message:
-          "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
-        link: "https://nzcp.covid19.health.nz/#did-document",
-        section: "5.1.1",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "The public key referenced by the decoded CWT MUST be listed/authorized under the assertionMethod verification relationship in the resolved DID document.",
+      link: "https://nzcp.covid19.health.nz/#did-document",
+      section: "5.1.1",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   // Not in NZCP spec but implied.. If theres an assertionMethod there should be a matching verification method
   if (!didDocument.verificationMethod) {
     throw new Violation({
-      violates: {
-        message:
-          "No matching verificationMethod method for the assertionMethod",
-        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-        section: "DID-CORE.2",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "No matching verificationMethod method for the assertionMethod",
+      link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+      section: "DID-CORE.2",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
   const verificationMethod = didDocument.verificationMethod.find(
@@ -419,12 +406,10 @@ const getCredentialSubject = (
   );
   if (!verificationMethod) {
     throw new Violation({
-      violates: {
-        message: "No matching verificationMethod for the assertionMethod",
-        link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
-        section: "DID-CORE.2",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "No matching verificationMethod for the assertionMethod",
+      link: "https://nzcp.covid19.health.nz/#ref:DID-CORE",
+      section: "DID-CORE.2",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -436,13 +421,11 @@ const getCredentialSubject = (
 
   if (!publicKeyJwk || !publicKeyJwk?.x || !publicKeyJwk?.y) {
     throw new Violation({
-      violates: {
-        message:
-          "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
-        link: "https://nzcp.covid19.health.nz/#did-document",
-        section: "5.1.2",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "The public key referenced by the decoded CWT MUST be a valid P-256 public key",
+      link: "https://nzcp.covid19.health.nz/#did-document",
+      section: "5.1.2",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -450,13 +433,11 @@ const getCredentialSubject = (
   // The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].
   if (verificationMethod?.type !== "JsonWebKey2020") {
     throw new Violation({
-      violates: {
-        message:
-          "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
-        link: "https://nzcp.covid19.health.nz/#did-document",
-        section: "5.1.3",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "The expression of the public key referenced by the decoded CWT MUST be in the form of a JWK as per [RFC7517].",
+      link: "https://nzcp.covid19.health.nz/#did-document",
+      section: "5.1.3",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -468,13 +449,11 @@ const getCredentialSubject = (
 
   if (publicKeyJwk.crv !== "P-256" || publicKeyJwk.kty !== "EC") {
     throw new Violation({
-      violates: {
-        message:
-          "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
-        link: "https://nzcp.covid19.health.nz/#did-document",
-        section: "5.1.5",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message:
+        "This public key JWK expression MUST set a crv property which has a value of P-256. Additionally, the JWK MUST have a kty property set to EC.",
+      link: "https://nzcp.covid19.health.nz/#did-document",
+      section: "5.1.5",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
@@ -489,18 +468,26 @@ const getCredentialSubject = (
   if (!result) {
     // exact wording is: "Verifying parties MUST validate the digital signature on a New Zealand COVID Pass and MUST reject passes that fail this check as being invalid."
     throw new Violation({
-      violates: {
-        message:
-          "Retrieved public key does not validate `COSE_Sign1` structure",
-        link: "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
-        section: "3",
-        description: "The COVID Pass is malformed or has been modified."
-      },
+      message: "Retrieved public key does not validate `COSE_Sign1` structure",
+      link: "https://nzcp.covid19.health.nz/#cryptographic-digital-signature-algorithm-selection",
+      section: "3",
+      description: "The COVID Pass is malformed or has been modified.",
     });
   }
 
   // TODO: section number?
   // With the payload returned from the COSE_Sign1 decoding, check if it is a valid CWT containing the claims defined in the data model section, if these conditions are not meet then fail.
-  const validatedCwtClaims = validateCWTClaims(cwtClaims);
-  return validatedCwtClaims.vc.credentialSubject
+  try {
+    const validatedCwtClaims = validateCWTClaims(cwtClaims);
+    return validatedCwtClaims.vc.credentialSubject;
+  } catch (e) {
+    if ("violates" in e) {
+      throw new Violation(
+        (e as Violation).violates,
+        cwtClaims.vc?.credentialSubject
+      );
+    } else {
+      throw e;
+    }
+  }
 };

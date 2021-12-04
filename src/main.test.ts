@@ -81,6 +81,7 @@ test("Expired Pass is unsuccessful", async () => {
   });
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.4.3");
+  expect(result.credentialSubject?.dob).toBeTruthy()
 });
 
 // https://nzcp.covid19.health.nz/#not-active-pass
@@ -92,6 +93,7 @@ test("Not Active pass is unsuccessful", async () => {
   });
   expect(result.success).toBe(false);
   expect(result.violates?.section).toBe("2.1.0.3.3");
+  expect(result.credentialSubject?.dob).toBeTruthy()
 });
 
 // Custom Test: non base-32 string in the payload

@@ -1,13 +1,14 @@
+import { CredentialSubject } from "./cwtTypes";
 import { Violates } from "./generalTypes";
 
-interface ViolationOptions {
-  violates: Violates
-}
+type ViolationOptions = Violates;
 
-export class Violation extends Error{
+export class Violation extends Error {
   violates: Violates;
-  constructor(options: ViolationOptions){
-    super(options.violates.message);
-    this.violates = options.violates;
+  credentialSubject: CredentialSubject | null
+  constructor(options: ViolationOptions, credentialSubject: CredentialSubject | null = null) {
+    super(options.message);
+    this.violates = options;
+    this.credentialSubject = credentialSubject;
   }
 }
