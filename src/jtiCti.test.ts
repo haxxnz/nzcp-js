@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import { decodeCtiToJti } from "./jtiCti";
 import { Violation } from "./violation";
 
