@@ -2,6 +2,7 @@ import { sha256 } from "js-sha256";
 import elliptic from "elliptic";
 import { DecodedCOSEStructure } from "./coseTypes";
 import { encodeOneCBOR } from "./cbor";
+import { Buffer } from "buffer";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
