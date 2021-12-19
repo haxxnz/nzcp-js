@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import { base32 } from "rfc4648";
 import { decodeCBOR, encodeOneCBOR } from "./cbor";
 
