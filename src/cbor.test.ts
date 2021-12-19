@@ -1,5 +1,5 @@
 import { base32 } from "rfc4648";
-import { decodeCBOR, encodeCBOR } from "./cbor";
+import { decodeCBOR, encodeOneCBOR } from "./cbor";
 
 test("CBOR library decodes", async () => {
   const res = base32.parse(
@@ -19,7 +19,7 @@ test("CBOR library encodes", async () => {
   ));
 
   const cborobj = decodeCBOR(res);
-  const result = encodeCBOR(cborobj);
+  const result = encodeOneCBOR(cborobj);
 
   expect(res.toString("hex")).toEqual(result.toString("hex"));
 });

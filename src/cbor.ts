@@ -14,8 +14,8 @@ global.TextEncoder = util.TextEncoder;
 
 import cbor from "cbor";
 
-export const encodeCBOR = (obj: any): Buffer => {
-  return cbor.encode(obj);
+export const encodeOneCBOR = (obj: any): Buffer => {
+  return cbor.encodeOne(obj, { genTypes: [Buffer, cbor.Encoder._pushBuffer] });
 };
 
 export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
