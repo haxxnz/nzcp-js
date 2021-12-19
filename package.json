@@ -31,7 +31,7 @@
     "test-watch": "jest --watch",
     "clean": "rm -rf dist build package",
     "docs": "typedoc --entryPoints src/main.ts",
-    "build-all": "yarn clean && patch-package && tsc --emitDeclarationOnly -p tsconfig.json && yarn ts-node build.ts",
+    "build-all": "yarn clean && tsc --emitDeclarationOnly -p tsconfig.json && yarn ts-node build.ts",
     "build-and-publish": "./build-and-publish"
   },
   "devDependencies": {
@@ -50,7 +50,6 @@
     "eslint": "^7.22.0",
     "jest": "^26.6.3",
     "js-sha256": "^0.9.0",
-    "patch-package": "^6.4.7",
     "postinstall-postinstall": "^2.1.0",
     "rfc4648": "^1.5.0",
     "ts-jest": "^26.5.4",
