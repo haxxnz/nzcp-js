@@ -49,7 +49,7 @@ export function validateCOSESignature(
     bufferPayload_,
   ];
 
-  const ToBeSigned = cbor.encodeOne(SigStructure);
+  const ToBeSigned = cbor.encodeOne(SigStructure, { genTypes: [Buffer, cbor.Encoder._pushBuffer] });
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
     r: signature_.slice(0, signature_.length / 2),
