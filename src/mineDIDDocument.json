@@ -1,0 +1,21 @@
+{
+  "@context": "https://w3.org/ns/did/v1",
+  "id": "did:web:nzcp.covid19.health.nz",
+  "verificationMethod": [
+    {
+      "id": "did:web:nzcp.covid19.health.nz#01",
+      "controller": "did:web:nzcp.covid19.health.nz",
+      "type": "JsonWebKey2020",
+      "publicKeyJwk": {
+        "crv": "P-256",
+        "kid": "01",
+        "kty": "EC",
+        "x": "BTq6ynU_JdIBStxsRmEDKkdMOT2X945TBThWDIcNOe0",
+        "y": "F-4hndWkMHzA9riKl9jqbocBUREam6zPVzPsUiOxDYw"
+      }
+    }
+  ],
+  "assertionMethod": [
+    "did:web:nzcp.covid19.health.nz#01"
+  ]
+}
