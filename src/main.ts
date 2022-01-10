@@ -9,7 +9,6 @@ import { CredentialSubject, CWTClaims, CWTHeaders, UnvalidatedCWTClaims } from "
 import { DIDDocument } from "did-resolver";
 import exampleDIDDocument from "./exampleDIDDocument.json";
 import liveDIDDocument from "./liveDIDDocument.json";
-import mineDIDDocument from "./mineDIDDocument.json";
 import { Violation } from "./violation";
 import { DecodedCOSEStructure } from "./coseTypes";
 
@@ -18,7 +17,6 @@ import { DecodedCOSEStructure } from "./coseTypes";
 const DID_DOCUMENTS = {
   MOH_LIVE: liveDIDDocument,
   MOH_EXAMPLE: exampleDIDDocument,
-  MINE: mineDIDDocument,
 };
 
 // https://nzcp.covid19.health.nz/#trusted-issuers
