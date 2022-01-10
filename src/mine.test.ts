@@ -12,7 +12,6 @@ test("PATRICK_1_PASS is successful", async () => {
     trustedIssuer: mineDIDDocument.id,
     didDocument: mineDIDDocument,
   });
-  // console.log('result', result);
   expect(result.success).toBe(true);
   expect(result.credentialSubject?.givenName).toBe("Patrick");
   expect(result.credentialSubject?.familyName).toBe("Star");
@@ -25,7 +24,6 @@ test("PATRICK_2_PASS is successful", async () => {
     trustedIssuer: mineDIDDocument.id,
     didDocument: mineDIDDocument,
   });
-  // console.log('result', result);
   expect(result.success).toBe(true);
   expect(result.credentialSubject?.givenName).toBe("Patrick");
   expect(result.credentialSubject?.familyName).toBe("Star");
