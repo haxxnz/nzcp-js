@@ -1,0 +1,12 @@
+{
+  "crv": "P-256",
+  "d": "axTx0mW8Ljd_E0WWNUnK-j-amZBWRxBaPSNRB9TRjRk",
+  "key_ops": [
+    "sign"
+  ],
+  "kid": "01",
+  "kty": "EC",
+  "x": "BTq6ynU_JdIBStxsRmEDKkdMOT2X945TBThWDIcNOe0",
+  "y": "F-4hndWkMHzA9riKl9jqbocBUREam6zPVzPsUiOxDYw",
+  "alg": "ES256"
+}

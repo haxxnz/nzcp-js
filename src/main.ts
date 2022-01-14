@@ -63,13 +63,13 @@ export const verifyPassURIOffline = (
   try {
     const decodedCOSEStructure = getCOSEStructure(uri);
     const cwtHeaders = getCWTHeaders(decodedCOSEStructure);
-    const unvalidatedCWtClaims = getUnvalidatedCWTClaims(decodedCOSEStructure);
-    const iss = getIss(unvalidatedCWtClaims, trustedIssuers);
+    const unvalidatedCWTClaims = getUnvalidatedCWTClaims(decodedCOSEStructure);
+    const iss = getIss(unvalidatedCWTClaims, trustedIssuers);
     const didDocument = didDocuments.find((d) => d.id === iss) ?? null;
     const cwtClaims = getCWTClaims(
       iss,
       cwtHeaders,
-      unvalidatedCWtClaims,
+      unvalidatedCWTClaims,
       didDocument,
       decodedCOSEStructure
     );
