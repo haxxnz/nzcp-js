@@ -1,18 +1,6 @@
 // centralized place where cbor is included, in case we need to patch it
-
 import { Buffer } from "buffer";
-
-import process from "process";
-global.process = process;
-
 import util from "util";
-// @ts-ignore
-global.TextDecoder = util.TextDecoder;
-// @ts-ignore
-global.TextEncoder = util.TextEncoder;
-
-import cbor from "cbor";
-
 
 type Data = string | number | Uint8Array | Data[] | Map<Data, Data> | { [key: string]: Data } | null;
 
@@ -102,7 +90,7 @@ function decodeCBORStream(stream: Stream) {
       return stream.chop(decodeUint(stream, v));
     } else if (type === 3) {
       // utf-8 string
-      return new TextDecoder("utf-8").decode(
+      return new util.TextDecoder("utf-8").decode(
         stream.chop(decodeUint(stream, v))
       );
     } else if (type === 4) {
