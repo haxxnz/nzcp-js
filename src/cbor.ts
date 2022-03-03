@@ -1,8 +1,10 @@
 // centralized place where cbor is included, in case we need to patch it
 import { Buffer } from "buffer";
 import util from "util";
+import { Data } from "./cborTypes";
+import { DecodedCOSEStructure } from "./coseTypes";
 
-type Data = string | number | Uint8Array | Data[] | Map<Data, Data> | { [key: string]: Data } | null;
+
 
 // author: putara
 // https://github.com/putara/nzcp/blob/master/verifier.js
@@ -163,9 +165,10 @@ export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array)
 
 
 function decodeCOSEStream(stream: Stream) {
+  const vtag = stream.getc();
+  const tag = vtag & 31;
+
   try {
-    const vtag = stream.getc();
-    const tag = vtag & 31;
     if (vtag !== 0xD2) {
       throw new Error('invalid data');
     }
@@ -196,8 +199,8 @@ function decodeCOSEStream(stream: Stream) {
   }
   catch (err) {
     return {
-      tag: undefined,
-      value: undefined,
+      tag,
+      value: [],
       err,
     }
   }
@@ -208,7 +211,7 @@ export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
   return data
 };
 
-export const decodeCOSE = (buf: Buffer | Uint8Array): any => {
+export const decodeCOSE = (buf: Buffer | Uint8Array): DecodedCOSEStructure => {
   const data = decodeCOSEStream(new Stream(buf))
   return data
 };

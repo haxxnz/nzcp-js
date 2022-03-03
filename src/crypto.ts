@@ -32,14 +32,12 @@ export function validateCOSESignature(
   //     external_aad : bstr,
   //     payload : bstr
   // ]
-  const bufferProtected_ = Buffer.from(protected_ as Buffer);
-  const bufferPayload_ = Buffer.from(payload_ as Buffer);
 
-  const ToBeSigned = encodeToBeSigned(bufferProtected_, bufferPayload_);
+  const ToBeSigned = encodeToBeSigned(protected_ as Uint8Array, payload_ as Uint8Array);
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
-    r: signature_.slice(0, signature_.length / 2),
-    s: signature_.slice(signature_.length / 2),
+    r: (signature_ as Uint8Array).slice(0, (signature_ as Uint8Array).length / 2),
+    s: (signature_ as Uint8Array).slice((signature_ as Uint8Array).length / 2),
   };
   const result = key.verify(messageHash, signature);
   return result;
