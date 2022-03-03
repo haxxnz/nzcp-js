@@ -220,7 +220,7 @@ export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
   return data
 };
 
-export const decodeCBORTagged = (buf: Buffer | Uint8Array): any => {
+export const decodeCOSE = (buf: Buffer | Uint8Array): any => {
   const data = decodeCOSEStream(new Stream(buf))
   return data
 };
