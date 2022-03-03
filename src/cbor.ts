@@ -37,7 +37,7 @@ class Stream {
     if (this.ptr + len > this.len) {
       throw new Error("invalid data");
     }
-    let out = this.data.subarray(this.ptr, this.ptr + len);
+    const out = this.data.subarray(this.ptr, this.ptr + len);
     this.ptr += len;
     return out;
   }
@@ -99,7 +99,7 @@ function decodeCBORStream(stream: Stream) {
       // array
       const d = new Array(decodeUint(stream, v))
         .fill(undefined)
-        .map((_) => decode(stream));
+        .map(() => decode(stream));
       return d;
     } else if (type === 5) {
       // object
@@ -136,7 +136,7 @@ const encodeBytes = (data: Uint8Array | never[]) => {
   throw new Error("Too big data");
 };
 
-export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array) {
+export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array): Uint8Array {
   const sig_structure = new Uint8Array([
     // array w/ 4 items
     0x84,
@@ -206,7 +206,7 @@ function decodeCOSEStream(stream: Stream) {
   }
 }
 
-export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
+export const decodeCBOR = (buf: Buffer | Uint8Array): Data => {
   const data = decodeCBORStream(new Stream(buf))
   return data
 };
