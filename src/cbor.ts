@@ -4,8 +4,6 @@ import util from "util";
 import { Data } from "./cborTypes";
 import { DecodedCOSEStructure } from "./coseTypes";
 
-
-
 // author: putara
 // https://github.com/putara/nzcp/blob/master/verifier.js
 class Stream {
@@ -162,7 +160,6 @@ export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array)
   const ToBeSigned = sig_structure;
   return ToBeSigned;
 }
-
 
 function decodeCOSEStream(stream: Stream) {
   const vtag = stream.getc();
