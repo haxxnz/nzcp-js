@@ -297,8 +297,8 @@ const getCWTHeaders = (
   // 01              -- {Key:1}, 1
   // 26              -- {Val:1}, -7
   const decodedCWTProtectedHeaders = decodeCBOR(
-    decodedCOSEStructure.value[0] as Buffer
-  ) as Map<number, Buffer | number>;
+    decodedCOSEStructure.value[0] as Uint8Array
+  ) as Map<number, Uint8Array | number>;
 
   const cwtHeaders = parseCWTHeaders(decodedCWTProtectedHeaders);
 
@@ -334,8 +334,8 @@ const getUnvalidatedCWTClaims = (
   decodedCOSEStructure: DecodedCOSEStructure
 ): UnvalidatedCWTClaims => {
   const rawCWTClaims = decodeCBOR(
-    decodedCOSEStructure.value[2] as Buffer
-  ) as Map<number | string, string | number | Buffer | unknown>;
+    decodedCOSEStructure.value[2] as Uint8Array
+  ) as Map<number | string, string | number | Uint8Array | unknown>;
 
   const cwtClaims = parseCWTClaims(rawCWTClaims);
   return cwtClaims;

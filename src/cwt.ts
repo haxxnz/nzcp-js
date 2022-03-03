@@ -21,7 +21,7 @@ export function parseCWTClaims(
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
     try {
-      const jtiResult = decodeCtiToJti(ctiClaimRaw as Buffer);
+      const jtiResult = decodeCtiToJti(ctiClaimRaw as Uint8Array);
       jti = jtiResult;
     } catch (error) {
       // continue parsing, but don't set jti

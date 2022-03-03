@@ -202,12 +202,12 @@ function decodeCOSEStream(stream: Stream) {
   }
 }
 
-export const decodeCBOR = (buf: Buffer | Uint8Array): Data => {
+export const decodeCBOR = (buf: Uint8Array): Data => {
   const data = decodeCBORStream(new Stream(buf))
   return data
 };
 
-export const decodeCOSE = (buf: Buffer | Uint8Array): DecodedCOSEStructure => {
+export const decodeCOSE = (buf: Uint8Array): DecodedCOSEStructure => {
   const data = decodeCOSEStream(new Stream(buf))
   return data
 };
