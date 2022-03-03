@@ -174,6 +174,46 @@ export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array)
 }
 
 
+function decodeCOSEStream(stream: Stream) {
+  try {
+    const vtag = stream.getc();
+    const tag = vtag & 31;
+    if (vtag !== 0xD2) {
+      throw new Error('invalid data');
+    }
+    const data = decodeCBORStream(stream);
+    if (!(data instanceof Array)) {
+      throw new Error('invalid data');
+    }
+
+    const data1 = data[1];
+    if (!(data1 instanceof Map)) {
+      throw new Error('invalid data');
+    }
+
+    if (!(data instanceof Array) || data.length !== 4 || !(data[0] instanceof Uint8Array) || typeof data1 !== 'object' || Object.keys(data1).length !== 0 || !(data[2] instanceof Uint8Array) || !(data[3] instanceof Uint8Array)) {
+      throw new Error('invalid data');
+    }
+
+    return {
+      tag,
+      value: [
+        Buffer.from(data[0]),
+        data[1],
+        Buffer.from(data[2]),
+        Buffer.from(data[3]),
+      ],
+      err: undefined,
+    };
+  }
+  catch (err) {
+    return {
+      tag: undefined,
+      value: undefined,
+      err,
+    }
+  }
+}
 
 export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
   const data = decodeCBORStream(new Stream(buf))
@@ -181,6 +221,6 @@ export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
 };
 
 export const decodeCBORTagged = (buf: Buffer | Uint8Array): any => {
-  const data = cbor.decode(buf);
+  const data = decodeCOSEStream(new Stream(buf))
   return data
 };
