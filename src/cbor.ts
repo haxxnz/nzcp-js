@@ -20,3 +20,8 @@ export const encodeOneCBOR = (obj: any): Buffer => {
 export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
   return cbor.decode(buf);
 };
+
+export const decodeCBORTagged = (buf: Buffer | Uint8Array): any => {
+  const data = cbor.decode(buf);
+  return data
+};
