@@ -11,3 +11,12 @@ export function addBase32Padding(base32InputNoPadding: string): string {
   }
   return result;
 }
+
+export function toHex(buffer: Uint8Array) {
+  function i2hex(i: number) {
+    return ('0' + i.toString(16)).slice(-2);
+  }
+  const hex = Array.from(buffer).map(i2hex).join('');
+  console.log('hex',hex);
+  return hex
+}
