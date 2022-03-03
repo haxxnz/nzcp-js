@@ -33,14 +33,7 @@ export function validateCOSESignature(
   //     payload : bstr
   // ]
   const bufferProtected_ = Buffer.from(protected_ as Buffer);
-  const buffer0 = Buffer.alloc(0);
   const bufferPayload_ = Buffer.from(payload_ as Buffer);
-  const SigStructure = [
-    "Signature1",
-    bufferProtected_,
-    buffer0,
-    bufferPayload_,
-  ];
 
   const ToBeSigned = encodeToBeSigned(bufferProtected_, bufferPayload_);
   const messageHash = sha256.digest(ToBeSigned);
