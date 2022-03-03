@@ -1,6 +1,5 @@
 // centralized place where cbor is included, in case we need to patch it
 import { Buffer } from "buffer";
-import util from "util";
 import { Data } from "./cborTypes";
 import { DecodedCOSEStructure } from "./coseTypes";
 
@@ -90,7 +89,7 @@ function decodeCBORStream(stream: Stream) {
       return stream.chop(decodeUint(stream, v));
     } else if (type === 3) {
       // utf-8 string
-      return new util.TextDecoder("utf-8").decode(
+      return new TextDecoder("utf-8").decode(
         stream.chop(decodeUint(stream, v))
       );
     } else if (type === 4) {
