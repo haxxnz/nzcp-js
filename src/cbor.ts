@@ -113,11 +113,6 @@ function decodeCBORStream(stream: Stream) {
       return d;
     } else if (type === 5) {
       // object
-      // const d: Record<string, Data> = Object.fromEntries(
-      //   new Array(decodeUint(stream, v))
-      //     .fill(undefined)
-      //     .map((_) => [decode(stream), decode(stream)])
-      // );
       const dMap: Map<Data, Data> = new Map();
       const dObj: { [key: string]: Data } = {};
       const len = decodeUint(stream, v);
@@ -130,7 +125,6 @@ function decodeCBORStream(stream: Stream) {
       return isKeyString ? dObj : dMap;
     }
     return null
-    // throw new Error("Invalid data");
   }
   return decode(stream);
 }
