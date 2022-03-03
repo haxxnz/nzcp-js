@@ -180,9 +180,6 @@ export function encodeToBeSigned(bodyProtected: Uint8Array, payload: Uint8Array)
 }
 
 
-export const encodeOneCBOR = (obj: any): Buffer => {
-  return cbor.encodeOne(obj, { genTypes: [Buffer, cbor.Encoder._pushBuffer] });
-};
 
 export const decodeCBOR = (buf: Buffer | Uint8Array): any => {
   const data = decodeCBORStream(new Stream(buf))
