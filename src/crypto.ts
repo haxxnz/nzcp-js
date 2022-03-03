@@ -2,7 +2,8 @@ import { sha256 } from "js-sha256";
 import elliptic from "elliptic";
 import { DecodedCOSEStructure } from "./coseTypes";
 import { encodeToBeSigned } from "./cbor";
-import { Buffer } from "buffer";
+import { decode } from 'base64-arraybuffer'
+import { toHex } from "./util";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
@@ -19,11 +20,11 @@ export function validateCOSESignature(
     return false;
   }
 
-  const xBuf = Buffer.from(publicKeyJwt.x, "base64");
-  const yBuf = Buffer.from(publicKeyJwt.y, "base64");
+  const xBuf = new Uint8Array(decode(publicKeyJwt.x.replace(/-/g, '+').replace(/_/g, '/')))
+  const yBuf = new Uint8Array(decode(publicKeyJwt.y.replace(/-/g, '+').replace(/_/g, '/')))
 
   // 1) '04' + hex string of x + hex string of y
-  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}`;
+  const publicKeyHex = `04${toHex(xBuf)}${toHex(yBuf)}`;
   const key = ec.keyFromPublic(publicKeyHex, "hex");
   //   Sig_structure = [
   //     context : "Signature" / "Signature1" / "CounterSignature",
