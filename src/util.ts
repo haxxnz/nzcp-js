@@ -17,6 +17,5 @@ export function toHex(buffer: Uint8Array) {
     return ('0' + i.toString(16)).slice(-2);
   }
   const hex = Array.from(buffer).map(i2hex).join('');
-  console.log('hex',hex);
   return hex
 }
