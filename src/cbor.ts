@@ -1,5 +1,4 @@
 // centralized place where cbor is included, in case we need to patch it
-import { Buffer } from "buffer";
 import { Data } from "./cborTypes";
 import { DecodedCOSEStructure } from "./coseTypes";
 
@@ -185,10 +184,10 @@ function decodeCOSEStream(stream: Stream) {
     return {
       tag,
       value: [
-        Buffer.from(data[0]),
+        data[0],
         data[1],
-        Buffer.from(data[2]),
-        Buffer.from(data[3]),
+        data[2],
+        data[3],
       ],
       err: undefined,
     };
