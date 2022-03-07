@@ -21,7 +21,7 @@ export function parseCWTClaims(
     // Section 2.1.1.2
     // CWT Token ID claim MUST be a valid UUID in the form of a URI as specified by [RFC4122]
     try {
-      const jtiResult = decodeCtiToJti(ctiClaimRaw as Buffer);
+      const jtiResult = decodeCtiToJti(ctiClaimRaw as Uint8Array);
       jti = jtiResult;
     } catch (error) {
       // continue parsing, but don't set jti
@@ -275,7 +275,7 @@ export function parseCWTHeaders(
   const CWTHeaderAlg = rawCWTHeaders.get(1);
   // Section 2.2.1
   // `kid` value MUST be encoded as a Major Type 3
-  const kid = CWTHeaderKid ? CWTHeaderKid.toString() : undefined;
+  const kid = CWTHeaderKid ? new TextDecoder("utf-8").decode(CWTHeaderKid as Uint8Array) : undefined;
   // Section 2.2.2
   // `alg` claim value MUST be set to the value corresponding to ES256 algorithm registration, which is the numeric value of -7
   const alg = CWTHeaderAlg === -7 ? "ES256" : undefined;

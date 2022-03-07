@@ -21,11 +21,11 @@ export interface CWTClaims {
 
 export type UnvalidatedCWTClaims = Partial<CWTClaims>;
 
-export type RawCWTHeaders = Map<number, Buffer | number>;
+export type RawCWTHeaders = Map<number, Uint8Array | number>;
 
 export type RawCWTClaims = Map<
   number | string,
-  string | number | Buffer | unknown
+  string | number | Uint8Array | unknown
 >;
 
 export interface CWTHeaders {

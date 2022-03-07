@@ -1,7 +1,17 @@
-type DecodedCOSEValue = (Buffer | Record<string, never>)[];
+import { Data } from "./cborTypes";
 
-export interface DecodedCOSEStructure {
-  tag: number;
-  value: DecodedCOSEValue;
-  err?: Error;
+type DecodedCOSEValue = Data[];
+
+interface DecodedCOSEStructureSuccess {
+    tag: number
+    value: DecodedCOSEValue
+    err: Error
 }
+
+interface DecodedCOSEStructureError {
+    tag: number
+    value: DecodedCOSEValue
+    err: undefined
+}
+
+export type DecodedCOSEStructure = DecodedCOSEStructureSuccess | DecodedCOSEStructureError

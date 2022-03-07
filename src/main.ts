@@ -4,7 +4,7 @@ import { addBase32Padding } from "./util";
 import { validateCOSESignature } from "./crypto";
 import { parseCWTClaims, parseCWTHeaders, validateCWTClaims } from "./cwt";
 import { VerificationResult, Violates } from "./generalTypes";
-import { decodeCBOR } from "./cbor";
+import { decodeCBOR, decodeCOSE } from "./cbor";
 import { CredentialSubject, CWTClaims, CWTHeaders, UnvalidatedCWTClaims } from "./cwtTypes";
 import { DIDDocument } from "did-resolver";
 import exampleDIDDocument from "./exampleDIDDocument.json";
@@ -280,7 +280,7 @@ const getCOSEStructure = (uri: string): DecodedCOSEStructure => {
   //       a501781e6469643a7765623a6e7a63702e636f76696431392e6865616c74682e6e7a051a61819a0a041a7450400a627663a46840636f6e7465787482782668747470733a2f2f7777772e77332e6f72672f323031382f63726564656e7469616c732f7631782a68747470733a2f2f6e7a63702e636f76696431392e6865616c74682e6e7a2f636f6e74657874732f76316776657273696f6e65312e302e306474797065827456657269666961626c6543726564656e7469616c6f5075626c6963436f766964506173737163726564656e7469616c5375626a656374a369676976656e4e616d65644a61636b6a66616d696c794e616d656753706172726f7763646f626a313936302d30342d3136075060a4f54d4e304332be33ad78b1eafa4b -- [2], a501781e6469643a7765623a6e7a63702e636f76696431392e6865616c74682e6e7a051a61819a0a041a7450400a627663a46840636f6e7465787482782668747470733a2f2f7777772e77332e6f72672f323031382f63726564656e7469616c732f7631782a68747470733a2f2f6e7a63702e636f76696431392e6865616c74682e6e7a2f636f6e74657874732f76316776657273696f6e65312e302e306474797065827456657269666961626c6543726564656e7469616c6f5075626c6963436f766964506173737163726564656e7469616c5375626a656374a369676976656e4e616d65644a61636b6a66616d696c794e616d656753706172726f7763646f626a313936302d30342d3136075060a4f54d4e304332be33ad78b1eafa4b
   //   58            -- Bytes, length next 1 byte
   //     40          -- Bytes, length: 64
-  const decodedCOSEStructure = decodeCBOR(uint8array);
+  const decodedCOSEStructure = decodeCOSE(uint8array);
 
   return decodedCOSEStructure;
 };
@@ -297,8 +297,8 @@ const getCWTHeaders = (
   // 01              -- {Key:1}, 1
   // 26              -- {Val:1}, -7
   const decodedCWTProtectedHeaders = decodeCBOR(
-    decodedCOSEStructure.value[0] as Buffer
-  ) as Map<number, Buffer | number>;
+    decodedCOSEStructure.value[0] as Uint8Array
+  ) as Map<number, Uint8Array | number>;
 
   const cwtHeaders = parseCWTHeaders(decodedCWTProtectedHeaders);
 
@@ -334,8 +334,8 @@ const getUnvalidatedCWTClaims = (
   decodedCOSEStructure: DecodedCOSEStructure
 ): UnvalidatedCWTClaims => {
   const rawCWTClaims = decodeCBOR(
-    decodedCOSEStructure.value[2] as Buffer
-  ) as Map<number | string, string | number | Buffer | unknown>;
+    decodedCOSEStructure.value[2] as Uint8Array
+  ) as Map<number | string, string | number | Uint8Array | unknown>;
 
   const cwtClaims = parseCWTClaims(rawCWTClaims);
   return cwtClaims;

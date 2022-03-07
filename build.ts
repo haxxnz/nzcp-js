@@ -1,8 +1,6 @@
 import { build } from "esbuild";
-import { nodeBuiltIns } from "esbuild-node-builtins";
 async function main() {
   const resultBrowser = await build({
-    plugins: [nodeBuiltIns()],
     entryPoints: ["src/browser.ts"],
     bundle: true,
     outfile: "dist/esbuild/browser.js",
@@ -11,10 +9,6 @@ async function main() {
     platform: "browser",
     format: "cjs",
     target: "es6",
-    define: {
-      "process.env.NODE_DEBUG": "false",
-      "global": "window"
-    },
   });
   console.log("resultBrowser", resultBrowser);
 

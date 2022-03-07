@@ -1,9 +1,10 @@
+import { toHex } from "./util";
 import { Violation } from "./violation";
 
 // Section 2.1.1
 // Decode CTI to JTI. Conforms to RFC4122
 // https://nzcp.covid19.health.nz/#mapping-jti-cti
-export function decodeCtiToJti(rawCti: Buffer): string {
+export function decodeCtiToJti(rawCti: Uint8Array): string {
   // Section 2.1.1.10.1
   // Parse the 16 byte value and convert to hexadecimal form
   if (rawCti.length !== 16) {
@@ -14,7 +15,7 @@ export function decodeCtiToJti(rawCti: Buffer): string {
       description: "The COVID Pass is malformed or has been modified.",
     });
   }
-  const hexUuid = rawCti.toString("hex");
+  const hexUuid = toHex(rawCti)
 
   // Section 2.1.1.10.2
   // In accordance with the ABNF syntax defined by [RFC4122] split the resulting hexadecimal string along the 4-2-2-2-6 hex octet pattern.

@@ -1,8 +1,9 @@
 import { sha256 } from "js-sha256";
 import elliptic from "elliptic";
 import { DecodedCOSEStructure } from "./coseTypes";
-import { encodeOneCBOR } from "./cbor";
-import { Buffer } from "buffer";
+import { encodeToBeSigned } from "./cbor";
+import { decode } from 'base64-arraybuffer'
+import { toHex } from "./util";
 
 const EC = elliptic.ec;
 const ec = new EC("p256");
@@ -19,11 +20,11 @@ export function validateCOSESignature(
     return false;
   }
 
-  const xBuf = Buffer.from(publicKeyJwt.x, "base64");
-  const yBuf = Buffer.from(publicKeyJwt.y, "base64");
+  const xBuf = new Uint8Array(decode(publicKeyJwt.x.replace(/-/g, '+').replace(/_/g, '/')))
+  const yBuf = new Uint8Array(decode(publicKeyJwt.y.replace(/-/g, '+').replace(/_/g, '/')))
 
   // 1) '04' + hex string of x + hex string of y
-  const publicKeyHex = `04${xBuf.toString("hex")}${yBuf.toString("hex")}`;
+  const publicKeyHex = `04${toHex(xBuf)}${toHex(yBuf)}`;
   const key = ec.keyFromPublic(publicKeyHex, "hex");
   //   Sig_structure = [
   //     context : "Signature" / "Signature1" / "CounterSignature",
@@ -32,21 +33,12 @@ export function validateCOSESignature(
   //     external_aad : bstr,
   //     payload : bstr
   // ]
-  const bufferProtected_ = Buffer.from(protected_ as Buffer);
-  const buffer0 = Buffer.alloc(0);
-  const bufferPayload_ = Buffer.from(payload_ as Buffer);
-  const SigStructure = [
-    "Signature1",
-    bufferProtected_,
-    buffer0,
-    bufferPayload_,
-  ];
 
-  const ToBeSigned = encodeOneCBOR(SigStructure);
+  const ToBeSigned = encodeToBeSigned(protected_ as Uint8Array, payload_ as Uint8Array);
   const messageHash = sha256.digest(ToBeSigned);
   const signature = {
-    r: signature_.slice(0, signature_.length / 2),
-    s: signature_.slice(signature_.length / 2),
+    r: (signature_ as Uint8Array).slice(0, (signature_ as Uint8Array).length / 2),
+    s: (signature_ as Uint8Array).slice((signature_ as Uint8Array).length / 2),
   };
   const result = key.verify(messageHash, signature);
   return result;
