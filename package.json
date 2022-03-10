@@ -1,6 +1,6 @@
 {
   "name": "@vaxxnz/nzcp",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A JavaScript implementation of the NZ COVID Pass verification",
   "contributors": [
     "Will Seagar <w.seagar@gmail.com>",
